@@ -1,10 +1,10 @@
 "use client";
-import { Menu, ArrowLeft } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 import Link from "next/link";
-import { Sheet, SheetTrigger, SheetContent, SheetClose, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useRouter, usePathname } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function DashboardMenu({
 	bandaNome,
@@ -31,76 +31,99 @@ export function DashboardMenu({
 			.slice(0, 2);
 	}
 
+	// Determina a tab ativa baseada na URL atual
+	const activeTab = pathname.includes("perfil") ? "perfil" : pathname.includes("eventos") ? "eventos" : "convites";
+
 	return (
-		<header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card sticky top-0 z-10">
-			<div className="flex items-center gap-2">
-				<Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => router.back()}>
-					<ArrowLeft className="w-5 h-5" />
-				</Button>
-				<div className="text-xl font-bold">{bandaNome || "Dashboard"}</div>
-			</div>
-			<Sheet>
-				<SheetTrigger asChild>
-					<Button variant="ghost" size="icon" aria-label="Abrir menu">
-						<Menu className="w-6 h-6" />
+		<header className="flex flex-col sticky top-0 z-10">
+			<div className="flex items-center justify-between px-4 py-3">
+				<div className="flex items-center gap-2">
+					<Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => router.back()}>
+						<ArrowLeft className="w-5 h-5" />
 					</Button>
-				</SheetTrigger>
-				<SheetContent side="left" className="max-w-xs p-0 pt-16 flex flex-col justify-between">
-					<SheetTitle className="sr-only">Menu de Navegação</SheetTitle>
-					<div className="flex flex-col items-center gap-2 py-4 px-2">
-						<div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-2xl font-bold">
-							{getInitials(usuario?.nome || "")}
-						</div>
-						<div className="font-semibold">{usuario?.nome || "Usuário"}</div>
-						<div className="text-xs text-muted-foreground mb-2">
-							{usuario?.tipo === "manager" ? "Manager" : "Músico"}
-						</div>
-						<SheetClose asChild>
-							<Link href={`/dashboard/${currentBandaId}/perfil`}>
-								<Button variant="ghost" className="w-full justify-start">
-									Perfil
-								</Button>
-							</Link>
-						</SheetClose>
-						<div className="w-full border-b border-border my-2" />
-						<nav className="flex flex-col gap-2 w-full">
-							{currentBandaId && usuario?.tipo === "manager" && (
-								<SheetClose asChild>
-									<Link href={`/dashboard/${currentBandaId}/gerenciar-convites`}>
-										<Button variant="ghost" className="w-full justify-start">
-											Gerenciar Convites
-										</Button>
-									</Link>
-								</SheetClose>
-							)}
-						</nav>
+					<div className="text-xl font-bold">{bandaNome || "Dashboard"}</div>
+				</div>
+				<div className="flex items-center gap-2">
+					<div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-bold">
+						{getInitials(usuario?.nome || "")}
 					</div>
-					<div className="p-4 border-t border-border">
-						<Button
-							variant="destructive"
-							className="w-full"
-							onClick={async () => {
-								try {
-									const supabase = createClientComponentClient();
-									const { error } = await supabase.auth.signOut();
+					<Button
+						variant="ghost"
+						size="icon"
+						aria-label="Sair"
+						onClick={async () => {
+							try {
+								const supabase = createClientComponentClient();
+								const { error } = await supabase.auth.signOut();
 
-									if (error) {
-										console.error("Erro ao fazer logout:", error.message);
-										return;
-									}
-
-									// Força o redirecionamento para a página de login
-									window.location.href = "/login";
-								} catch (error) {
-									console.error("Erro ao fazer logout:", error);
+								if (error) {
+									console.error("Erro ao fazer logout:", error.message);
+									return;
 								}
-							}}
-						>
-							Sair
-						</Button>
-					</div>
-				</SheetContent>
-			</Sheet>
+
+								window.location.href = "/login";
+							} catch (error) {
+								console.error("Erro ao fazer logout:", error);
+							}
+						}}
+					>
+						<LogOut className="w-5 h-5" />
+					</Button>
+				</div>
+			</div>
+			<div className="relative w-full border-b border-border">
+				<div className="overflow-x-auto scrollbar-none">
+					<Tabs defaultValue={activeTab} className="w-full">
+						<TabsList className="h-12 bg-transparent w-max flex px-4 gap-8">
+							<Link href={`/dashboard/${currentBandaId}/gerenciar-convites`}>
+								<TabsTrigger
+									value="convites"
+									className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
+								>
+									Convites
+									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
+								</TabsTrigger>
+							</Link>
+							<Link href={`/dashboard/${currentBandaId}/eventos`}>
+								<TabsTrigger
+									value="eventos"
+									className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
+								>
+									Agendas
+									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
+								</TabsTrigger>
+							</Link>
+							<Link href={`/dashboard/${currentBandaId}/eventos`}>
+								<TabsTrigger
+									value="musicos"
+									className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
+								>
+									Lista de músicos
+									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
+								</TabsTrigger>
+							</Link>
+							<Link href={`/dashboard/${currentBandaId}/eventos`}>
+								<TabsTrigger
+									value="repertorios"
+									className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
+								>
+									Repertórios
+									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
+								</TabsTrigger>
+							</Link>
+							<Link href={`/dashboard/${currentBandaId}/perfil`}>
+								<TabsTrigger
+									value="perfil"
+									className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
+								>
+									Perfil
+									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
+								</TabsTrigger>
+							</Link>
+						</TabsList>
+					</Tabs>
+				</div>
+			</div>
 		</header>
 	);
 }
