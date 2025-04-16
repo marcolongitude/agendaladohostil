@@ -1,15 +1,15 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { bandaSchema, type BandaFormData } from "@/schemas/banda";
 import { toast } from "sonner";
 import cep from "cep-promise";
+import { FormInput } from "@/components/form/FormInput";
 
 export function BandaForm() {
 	const router = useRouter();
@@ -27,22 +27,20 @@ export function BandaForm() {
 	});
 
 	const handleCepChange = async (cepValue: string) => {
-		if (cepValue.length === 8) {
-			try {
-				const address = await cep(cepValue);
-				form.reset({
-					...form.getValues(),
-					cidade: address.city,
-					estado: address.state,
-				});
-			} catch {
-				toast.error("CEP não encontrado");
-				form.reset({
-					...form.getValues(),
-					cidade: "",
-					estado: "",
-				});
-			}
+		try {
+			const address = await cep(cepValue);
+			form.reset({
+				...form.getValues(),
+				cidade: address.city,
+				estado: address.state,
+			});
+		} catch {
+			toast.error("CEP não encontrado");
+			form.reset({
+				...form.getValues(),
+				cidade: "",
+				estado: "",
+			});
 		}
 	};
 
@@ -75,108 +73,46 @@ export function BandaForm() {
 	}
 
 	return (
-		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-				<FormField
-					control={form.control}
-					name="nome"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Nome</FormLabel>
-							<FormControl>
-								<Input placeholder="Nome da banda" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
-				<FormField
-					control={form.control}
-					name="descricao"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Descrição</FormLabel>
-							<FormControl>
-								<Textarea placeholder="Descreva sua banda" className="resize-none" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
-				<FormField
-					control={form.control}
-					name="cep"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>CEP</FormLabel>
-							<FormControl>
-								<Input
-									placeholder="Digite o CEP"
-									{...field}
-									onChange={(e) => {
-										const value = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
-										field.onChange(value);
-										if (value.length === 8) {
-											handleCepChange(value);
-										}
-									}}
-									value={field.value}
-									maxLength={8}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
-				<FormField
-					control={form.control}
-					name="cidade"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Cidade</FormLabel>
-							<FormControl>
-								<Input placeholder="Cidade" {...field} disabled />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
-				<FormField
-					control={form.control}
-					name="estado"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Estado</FormLabel>
-							<FormControl>
-								<Input placeholder="Estado" {...field} disabled />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
-				<FormField
-					control={form.control}
-					name="genero"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Gênero Musical</FormLabel>
-							<FormControl>
-								<Input placeholder="Gênero musical principal" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
-				<Button type="submit" className="w-full">
-					Criar Banda
-				</Button>
-			</form>
-		</Form>
+		<FormProvider {...form}>
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+					<FormInput name="nome" label="Nome" placeholder="Nome da banda" />
+					<div className="space-y-2">
+						<label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+							Descrição
+						</label>
+						<Textarea
+							{...form.register("descricao")}
+							placeholder="Descreva sua banda"
+							className="resize-none"
+						/>
+						{form.formState.errors.descricao && (
+							<p className="text-sm font-medium text-destructive">
+								{form.formState.errors.descricao.message}
+							</p>
+						)}
+					</div>
+					<FormInput
+						name="cep"
+						label="CEP"
+						placeholder="Digite o CEP"
+						mask="cep"
+						onChangeCapture={(e: React.ChangeEvent<HTMLInputElement>) => {
+							// O FormInput já aplica a máscara, então podemos pegar o valor limpo
+							const cleanCep = e.target.value.replace(/\D/g, "");
+							if (cleanCep.length === 8) {
+								handleCepChange(cleanCep);
+							}
+						}}
+					/>
+					<FormInput name="cidade" label="Cidade" placeholder="Cidade" disabled />
+					<FormInput name="estado" label="Estado" placeholder="Estado" disabled />
+					<FormInput name="genero" label="Gênero Musical" placeholder="Gênero musical principal" />
+					<Button type="submit" className="w-full">
+						Criar Banda
+					</Button>
+				</form>
+			</Form>
+		</FormProvider>
 	);
 }
