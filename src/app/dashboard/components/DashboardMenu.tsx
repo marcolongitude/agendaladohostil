@@ -89,7 +89,7 @@ export function DashboardMenu({
 									value="eventos"
 									className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
 								>
-									Agendas
+									Eventos
 									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
 								</TabsTrigger>
 							</Link>
