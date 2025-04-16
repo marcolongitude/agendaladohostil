@@ -80,9 +80,20 @@ export function DashboardMenu({
 							variant="destructive"
 							className="w-full"
 							onClick={async () => {
-								const supabase = createClientComponentClient();
-								await supabase.auth.signOut();
-								router.push("/login");
+								try {
+									const supabase = createClientComponentClient();
+									const { error } = await supabase.auth.signOut();
+
+									if (error) {
+										console.error("Erro ao fazer logout:", error.message);
+										return;
+									}
+
+									// Força o redirecionamento para a página de login
+									window.location.href = "/login";
+								} catch (error) {
+									console.error("Erro ao fazer logout:", error);
+								}
 							}}
 						>
 							Sair
