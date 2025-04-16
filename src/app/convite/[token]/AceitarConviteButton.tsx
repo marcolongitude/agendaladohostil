@@ -1,36 +1,47 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useLoading } from "@/contexts/LoadingContext";
 
-export function AceitarConviteButton({ token }: { token: string }) {
+interface AceitarConviteButtonProps {
+	token: string;
+}
+
+export function AceitarConviteButton({ token }: AceitarConviteButtonProps) {
 	const router = useRouter();
+	const { setLoading, setLoadingMessage } = useLoading();
 
-	async function handleAceitar() {
-		const res = await fetch("/api/convites/aceitar", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ token }),
-		});
-		const data = await res.json();
+	async function handleAceitarConvite() {
+		try {
+			setLoading(true);
+			setLoadingMessage("Aceitando convite...");
 
-		if (!res.ok) {
-			toast.error(data.error || "Erro ao aceitar convite");
-			return;
-		}
+			const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+			const res = await fetch(`${baseUrl}/api/convites/aceitar`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ token }),
+			});
 
-		if (data.redirectToCadastro) {
-			router.push(`/cadastro?token=${token}`);
-		} else if (data.redirectToLogin) {
-			router.push("/login");
-		} else {
-			router.push("/dashboard");
+			if (!res.ok) {
+				throw new Error("Erro ao aceitar convite");
+			}
+
+			router.push("/bandas");
+		} catch (error) {
+			console.error("Erro ao aceitar convite:", error);
+			alert("Erro ao aceitar convite. Tente novamente.");
+		} finally {
+			setLoading(false);
 		}
 	}
 
 	return (
-		<Button className="w-full" onClick={handleAceitar}>
-			Aceitar convite
+		<Button onClick={handleAceitarConvite} className="w-full">
+			Aceitar Convite
 		</Button>
 	);
 }

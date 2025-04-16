@@ -93,6 +93,15 @@ export function DashboardMenu({
 									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
 								</TabsTrigger>
 							</Link>
+							<Link href={`/bandas`}>
+								<TabsTrigger
+									value="lista-bandas"
+									className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
+								>
+									Lista de bandas
+									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
+								</TabsTrigger>
+							</Link>
 							<Link href={`/dashboard/${currentBandaId}/eventos`}>
 								<TabsTrigger
 									value="musicos"

@@ -19,7 +19,7 @@ export default async function NovaBandaPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-900">
+		<div className="min-h-screen m-4">
 			<div className="flex items-center gap-4 mb-6">
 				<Button variant="ghost" size="icon" asChild>
 					<Link href="/bandas">

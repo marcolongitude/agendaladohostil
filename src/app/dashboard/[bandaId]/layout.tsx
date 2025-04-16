@@ -10,7 +10,14 @@ type Banda = {
 async function getBanda(bandaId: string): Promise<Banda | null> {
 	const cookieStore = cookies();
 	const supabase = createServerComponentClient({ cookies: () => cookieStore });
-	const { data: banda } = await supabase.from("bandas").select("nome, id").eq("id", bandaId).single();
+
+	const { data: banda, error } = await supabase.from("bandas").select("*").eq("id", bandaId).single();
+
+	if (error) {
+		console.error("Erro ao buscar banda:", error);
+		return null;
+	}
+
 	return banda;
 }
 

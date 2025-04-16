@@ -1,23 +1,29 @@
 "use client";
-import { ClipboardCopy } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
-export function CopyLinkButton({ token }: { token: string }) {
-	const url = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/convite/${token}`;
+interface CopyLinkButtonProps {
+	token: string;
+}
+
+export function CopyLinkButton({ token }: CopyLinkButtonProps) {
+	const handleCopy = async () => {
+		const link = `${window.location.origin}/convite/${token}`;
+		await navigator.clipboard.writeText(link);
+		toast.success("Link copiado para a área de transferência!");
+	};
+
 	return (
 		<Button
-			type="button"
+			size="icon"
 			variant="ghost"
-			size="lg"
-			className="p-2 rounded hover:bg-gray-700"
+			className="h-8 w-8 text-muted-foreground hover:text-foreground"
+			onClick={handleCopy}
 			title="Copiar link do convite"
-			onClick={async () => {
-				await navigator.clipboard.writeText(url);
-				toast.success("Link copiado!");
-			}}
 		>
-			<ClipboardCopy className="w-5 h-5 text-gray-400 hover:text-white" />
+			<Copy className="h-4 w-4" />
 		</Button>
 	);
 }

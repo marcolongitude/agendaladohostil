@@ -1,14 +1,9 @@
-import { use } from "react";
 import { AceitarConviteButton } from "./AceitarConviteButton";
 
 interface Convite {
-	id: string;
-	banda_id: string;
-	email: string | null;
-	expires_at: string | null;
-	status: string;
-	token: string;
 	banda_nome: string;
+	email?: string;
+	expires_at: string;
 }
 
 async function getConvite(token: string): Promise<Convite | null> {
@@ -18,42 +13,44 @@ async function getConvite(token: string): Promise<Convite | null> {
 	return res.json();
 }
 
-function formatDate(dateStr: string | null) {
-	if (!dateStr) return "-";
-	const date = new Date(dateStr);
-	return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+function formatDate(dateString: string) {
+	const date = new Date(dateString);
+	return date.toLocaleDateString("pt-BR", {
+		day: "2-digit",
+		month: "2-digit",
+		year: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 }
 
-function ConvitePage({ token }: { token: string }) {
-	const convite = use(getConvite(token));
+export default async function ConvitePage({ params }: { params: Promise<{ token: string }> }) {
+	const { token } = await params;
+	const convite = await getConvite(token);
+
 	if (!convite) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-gray-900">
-				<div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700 text-center">
-					<h2 className="text-2xl font-bold text-red-400 mb-2">Convite não encontrado</h2>
-					<p className="text-gray-400">Verifique se o link está correto ou se o convite expirou.</p>
+			<div className="min-h-screen flex items-center justify-center bg-background">
+				<div className="text-center">
+					<h1 className="text-2xl font-bold mb-4">Convite Inválido</h1>
+					<p className="text-muted-foreground">Este convite não existe ou já expirou.</p>
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-900  px-2">
-			<div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700 mx-2">
-				<h2 className="text-2xl font-bold text-white mb-4 text-center">{convite.banda_nome}</h2>
-				<div className="mb-6 text-center">
-					<div className="text-lg text-gray-400 mb-1">Convidado:</div>
-					<div className="text-xl font-bold text-yellow-400 mb-2">{convite.email || "Qualquer e-mail"}</div>
-					<div className="text-sm text-gray-400">Expira em:</div>
-					<div className="text-md font-semibold text-blue-300 mb-4">{formatDate(convite.expires_at)}</div>
+		<div className="min-h-screen flex items-center justify-center bg-background">
+			<div className="text-center">
+				<h1 className="text-2xl font-bold mb-4">Convite para {convite.banda_nome}</h1>
+				<div className="mb-6">
+					<div className="text-lg text-muted-foreground mb-1">Convidado:</div>
+					<div className="text-xl font-bold mb-2">{convite.email || "Qualquer e-mail"}</div>
+					<div className="text-sm text-muted-foreground">Expira em:</div>
+					<div className="text-md font-semibold mb-4">{formatDate(convite.expires_at)}</div>
 				</div>
 				<AceitarConviteButton token={token} />
 			</div>
 		</div>
 	);
-}
-
-export default function ConvitePageWrapper(props: { params: Promise<{ token: string }> }) {
-	const { token } = use(props.params);
-	return <ConvitePage token={token} />;
 }
