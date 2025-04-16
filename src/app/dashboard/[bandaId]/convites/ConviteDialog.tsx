@@ -15,8 +15,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 const conviteSchema = z.object({
 	email: z.string().email("E-mail inválido").optional().or(z.literal("")),
@@ -32,7 +32,6 @@ interface ConviteDialogProps {
 
 export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 	const [open, setOpen] = useState(false);
-	const router = useRouter();
 	const form = useForm<ConviteFormData>({
 		resolver: zodResolver(conviteSchema),
 		defaultValues: { email: "", expires_at: "" },
@@ -40,20 +39,24 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 
 	async function onSubmit(data: ConviteFormData) {
 		try {
-			const response = await fetch("/api/convites", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					banda_id: bandaId,
-					email: data.email || null,
-					expires_at: data.expires_at || null,
-				}),
+			const supabase = createClientComponentClient();
+
+			// Gera um token seguro
+			const token = crypto.randomUUID();
+
+			// Salva o convite diretamente usando Supabase
+			const { error } = await supabase.from("convites_banda").insert({
+				banda_id: bandaId,
+				email: data.email || null,
+				token,
+				status: "pendente",
+				expires_at: data.expires_at || null,
 			});
-			const result = await response.json();
-			if (!response.ok) throw new Error(result.error || "Erro ao criar convite");
+
+			if (error) throw new Error("Erro ao criar convite: " + error.message);
+
 			toast.success("Convite criado com sucesso!");
 			setOpen(false);
-			router.refresh();
 			if (onSuccess) {
 				onSuccess();
 			}
