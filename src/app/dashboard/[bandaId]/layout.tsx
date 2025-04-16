@@ -14,10 +14,16 @@ type Usuario = {
 };
 
 async function getBanda(bandaId: string): Promise<Banda | null> {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-	const res = await fetch(`${baseUrl}/api/bandas?id=${bandaId}`, { cache: "no-store" });
-	if (!res.ok) return null;
-	return res.json();
+	const cookieStore = cookies();
+	const supabase = createServerComponentClient({ cookies: () => cookieStore });
+	const { data: banda, error } = await supabase.from("bandas").select("nome").eq("id", bandaId).single();
+
+	if (error) {
+		console.error("Erro ao buscar banda:", error);
+		return null;
+	}
+
+	return banda;
 }
 
 async function getUsuario(): Promise<Usuario | null> {
