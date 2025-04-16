@@ -95,7 +95,8 @@ export function CreateUserProvider() {
 				<div className="space-y-4">
 					<FormInput name="name" label="Nome" placeholder="Digite seu nome" />
 					<FormInput name="email" label="E-mail" placeholder="Digite seu e-mail" type="email" />
-					<FormInput name="telefone" label="Telefone" placeholder="Digite seu telefone" />
+					<FormInput name="telefone" label="Telefone" placeholder="(99) 99999-9999" mask="tel" />
+
 					<FormInput name="instrumento" label="Instrumento" placeholder="Digite seu instrumento" />
 					<FormInput name="password" label="Senha" placeholder="Digite sua senha" type="password" />
 					<FormInput

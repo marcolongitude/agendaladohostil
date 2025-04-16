@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { bandaSchema, type BandaFormData } from "@/schemas/banda";
 import { toast } from "sonner";
+import cep from "cep-promise";
 
 export function BandaForm() {
 	const router = useRouter();
@@ -21,8 +22,29 @@ export function BandaForm() {
 			cidade: "",
 			estado: "",
 			genero: "",
+			cep: "",
 		},
 	});
+
+	const handleCepChange = async (cepValue: string) => {
+		if (cepValue.length === 8) {
+			try {
+				const address = await cep(cepValue);
+				form.reset({
+					...form.getValues(),
+					cidade: address.city,
+					estado: address.state,
+				});
+			} catch {
+				toast.error("CEP não encontrado");
+				form.reset({
+					...form.getValues(),
+					cidade: "",
+					estado: "",
+				});
+			}
+		}
+	};
 
 	async function onSubmit(data: BandaFormData) {
 		try {
@@ -85,12 +107,38 @@ export function BandaForm() {
 
 				<FormField
 					control={form.control}
+					name="cep"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>CEP</FormLabel>
+							<FormControl>
+								<Input
+									placeholder="Digite o CEP"
+									{...field}
+									onChange={(e) => {
+										const value = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
+										field.onChange(value);
+										if (value.length === 8) {
+											handleCepChange(value);
+										}
+									}}
+									value={field.value}
+									maxLength={8}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
+				<FormField
+					control={form.control}
 					name="cidade"
 					render={({ field }) => (
 						<FormItem>
 							<FormLabel>Cidade</FormLabel>
 							<FormControl>
-								<Input placeholder="Cidade" {...field} />
+								<Input placeholder="Cidade" {...field} disabled />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -104,7 +152,7 @@ export function BandaForm() {
 						<FormItem>
 							<FormLabel>Estado</FormLabel>
 							<FormControl>
-								<Input placeholder="Estado" {...field} />
+								<Input placeholder="Estado" {...field} disabled />
 							</FormControl>
 							<FormMessage />
 						</FormItem>

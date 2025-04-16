@@ -9,7 +9,7 @@ export default function UserRegistration() {
 			<Card className="max-w-md mx-auto">
 				<CardHeader>
 					<CardTitle className="text-center">Agenda MAG</CardTitle>
-					<CardDescription className="text-center">Cadastro de Usuário</CardDescription>
+					<CardDescription className="text-center">Cadastro de músico</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<CreateUserProvider />

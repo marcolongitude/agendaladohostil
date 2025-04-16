@@ -17,7 +17,7 @@ export default async function LoginPage() {
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-background">
-			<div className="bg-card p-8 rounded-lg shadow-lg w-96 border border-border">
+			<div className="p-8 rounded-lg shadow-lg border border-border">
 				<div className="text-center mb-8">
 					<h1 className="text-3xl font-bold mb-2">Bem-vindo</h1>
 					<p className="text-muted-foreground">Faça login para continuar</p>
