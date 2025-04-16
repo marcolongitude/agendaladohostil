@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+	const { id } = await params;
 	const supabase = createRouteHandlerClient({ cookies });
 
 	try {
-		const { data, error } = await supabase.from("musicos").select("*").eq("id", params.id).single();
+		const { data, error } = await supabase.from("musicos").select("*").eq("id", id).single();
 
 		if (error) {
 			return NextResponse.json({ error: error.message }, { status: 400 });

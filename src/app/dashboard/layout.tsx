@@ -67,15 +67,16 @@ export default async function DashboardLayout({
 	params,
 }: {
 	children: React.ReactNode;
-	params: { bandaId?: string };
+	params: Promise<{ bandaId?: string }>;
 }) {
+	const { bandaId } = await params;
 	const usuario = await getUsuario();
 
 	if (!usuario) {
 		redirect("/login");
 	}
 
-	const banda = params.bandaId ? await getBanda(params.bandaId) : null;
+	const banda = bandaId ? await getBanda(bandaId) : null;
 
 	return (
 		<div className="min-h-screen flex flex-col bg-background">

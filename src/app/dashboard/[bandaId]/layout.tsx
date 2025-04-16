@@ -19,9 +19,10 @@ export default async function BandaLayout({
 	params,
 }: {
 	children: React.ReactNode;
-	params: { bandaId: string };
+	params: Promise<{ bandaId: string }>;
 }) {
-	const banda = await getBanda(params.bandaId);
+	const { bandaId } = await params;
+	const banda = await getBanda(bandaId);
 
 	if (!banda) {
 		redirect("/dashboard");
