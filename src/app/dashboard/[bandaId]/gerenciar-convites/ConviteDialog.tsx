@@ -20,7 +20,6 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 const conviteSchema = z.object({
 	email: z.string().email("E-mail inválido").optional().or(z.literal("")),
-	expires_at: z.string().optional(),
 });
 
 type ConviteFormData = z.infer<typeof conviteSchema>;
@@ -34,7 +33,7 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 	const [open, setOpen] = useState(false);
 	const form = useForm<ConviteFormData>({
 		resolver: zodResolver(conviteSchema),
-		defaultValues: { email: "", expires_at: "" },
+		defaultValues: { email: "" },
 	});
 
 	async function onSubmit(data: ConviteFormData) {
@@ -44,13 +43,17 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 			// Gera um token seguro
 			const token = crypto.randomUUID();
 
+			// Calcula a data de expiração (24 horas a partir de agora)
+			const expiresAt = new Date();
+			expiresAt.setHours(expiresAt.getHours() + 24);
+
 			// Salva o convite diretamente usando Supabase
 			const { error } = await supabase.from("convites_banda").insert({
 				banda_id: bandaId,
 				email: data.email || null,
 				token,
 				status: "pendente",
-				expires_at: data.expires_at || null,
+				expires_at: expiresAt.toISOString(),
 			});
 
 			if (error) throw new Error("Erro ao criar convite: " + error.message);
@@ -75,7 +78,9 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Criar convite</DialogTitle>
-					<DialogDescription>Crie um novo convite para adicionar um músico à banda.</DialogDescription>
+					<DialogDescription>
+						Crie um novo convite para adicionar um músico à banda. O convite expirará em 24 horas.
+					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 					<div>
@@ -83,13 +88,6 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 						<Input id="email" type="email" {...form.register("email")} placeholder="email@exemplo.com" />
 						{form.formState.errors.email && (
 							<span className="text-xs text-red-500">{form.formState.errors.email.message}</span>
-						)}
-					</div>
-					<div>
-						<Label htmlFor="expires_at">Expira em (opcional)</Label>
-						<Input id="expires_at" type="datetime-local" {...form.register("expires_at")} />
-						{form.formState.errors.expires_at && (
-							<span className="text-xs text-red-500">{form.formState.errors.expires_at.message}</span>
 						)}
 					</div>
 					<DialogFooter>
