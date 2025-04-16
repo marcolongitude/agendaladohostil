@@ -7,6 +7,8 @@ import { CopyLinkButton } from "./CopyLinkButton";
 import { useEffect, useState } from "react";
 import { useLoading } from "@/contexts/LoadingContext";
 import { useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Title } from "../../components/title";
 
 interface Convite {
 	id: string;
@@ -20,6 +22,7 @@ export default function ConvitesPage() {
 	const params = useParams();
 	const router = useRouter();
 	const { setLoading, setLoadingMessage } = useLoading();
+	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [data, setData] = useState<{
 		convites: Convite[];
 		userType?: string;
@@ -121,9 +124,19 @@ export default function ConvitesPage() {
 	return (
 		<main className="p-8 max-w-3xl mx-auto">
 			<header className="flex justify-between items-center mb-8">
-				<h1 className="text-3xl font-bold text-white">Convites</h1>
+				<Title>Convites</Title>
 				{data.userType === "manager" && (
-					<ConviteDialog bandaId={params?.bandaId as string} onSuccess={handleConviteCreated} />
+					<>
+						<Button variant="outline" className="ml-auto" onClick={() => setIsModalOpen(true)}>
+							Novo convite
+						</Button>
+						<ConviteDialog
+							bandaId={params?.bandaId as string}
+							onSuccess={handleConviteCreated}
+							open={isModalOpen}
+							onOpenChange={setIsModalOpen}
+						/>
+					</>
 				)}
 			</header>
 
@@ -131,7 +144,7 @@ export default function ConvitesPage() {
 				{data.convites.map((convite) => (
 					<li
 						key={convite.id}
-						className="bg-gray-800 p-4 rounded-lg border border-gray-700 flex items-center justify-between gap-4"
+						className="p-4 rounded-lg border border-gray-700 flex items-center justify-between gap-4"
 					>
 						<div className="min-w-0 space-y-1">
 							<p className="flex items-center gap-2 overflow-hidden">
