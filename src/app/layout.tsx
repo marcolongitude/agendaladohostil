@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { Loading } from "@/components/Loading";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,13 +16,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="pt-BR" suppressHydrationWarning className="dark">
+		<html lang="pt-BR" suppressHydrationWarning>
 			<body className={`${inter.className} bg-background text-foreground`}>
-				<LoadingProvider>
-					<Loading />
-					{children}
-				</LoadingProvider>
-				<Toaster />
+				<ThemeProvider>
+					<AuthProvider>
+						<LoadingProvider>
+							<Loading />
+							<div className="relative flex min-h-screen flex-col">
+								<div className="flex-1">{children}</div>
+							</div>
+							<Toaster />
+						</LoadingProvider>
+					</AuthProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);

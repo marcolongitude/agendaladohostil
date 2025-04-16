@@ -16,11 +16,11 @@ export default async function LoginPage() {
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-900">
-			<div className="bg-gray-800 p-8 rounded-lg shadow-lg w-96 border border-gray-700">
+		<div className="min-h-screen flex items-center justify-center bg-background">
+			<div className="bg-card p-8 rounded-lg shadow-lg w-96 border border-border">
 				<div className="text-center mb-8">
-					<h1 className="text-3xl font-bold text-white mb-2">Bem-vindo</h1>
-					<p className="text-gray-400">Faça login para continuar</p>
+					<h1 className="text-3xl font-bold mb-2">Bem-vindo</h1>
+					<p className="text-muted-foreground">Faça login para continuar</p>
 				</div>
 				<LoginForm />
 			</div>

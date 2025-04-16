@@ -107,10 +107,10 @@ export default async function BandasPage() {
 		};
 
 		return (
-			<div className="min-h-screen bg-gray-900">
+			<div className="min-h-screen bg-background">
 				<div className="max-w-lg mx-auto px-4 py-6">
 					<div className="flex justify-between items-center mb-6">
-						<h1 className="text-2xl font-bold text-white">Minhas Bandas</h1>
+						<h1 className="text-2xl font-bold">Bandas</h1>
 						{userData.tipo === "manager" && (
 							<Button asChild variant="outline" size="default">
 								<Link href="/bandas/nova" className="flex items-center gap-2">
@@ -122,7 +122,7 @@ export default async function BandasPage() {
 					</div>
 
 					{bandas.length === 0 ? (
-						<div className="text-center text-gray-400 mt-10">
+						<div className="text-center text-muted-foreground mt-10">
 							Você ainda não pertence a nenhuma banda.
 							<br />
 							{userData.tipo === "manager"
@@ -133,14 +133,14 @@ export default async function BandasPage() {
 						<div className="space-y-1">
 							{bandas.map((banda: Banda) => (
 								<div key={banda.id}>
-									<Button variant="ghost" className="w-full p-4 h-auto hover:bg-gray-800" asChild>
+									<Button variant="ghost" className="w-full p-4 h-auto hover:bg-muted" asChild>
 										<Link href={`/dashboard/${banda.id}`}>
 											<div className="flex items-center gap-3 w-full">
 												<div className="flex-1 text-left">
-													<h2 className="text-lg font-medium text-white group-hover:text-indigo-400 transition-colors">
+													<h2 className="text-lg font-medium group-hover:text-primary transition-colors">
 														{banda.nome}
 													</h2>
-													<p className="text-sm text-gray-400 line-clamp-1">
+													<p className="text-sm text-muted-foreground line-clamp-1">
 														{banda.descricao}
 													</p>
 												</div>
@@ -152,7 +152,7 @@ export default async function BandasPage() {
 														</span>
 													)}
 													<svg
-														className="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors"
+														className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors"
 														fill="none"
 														stroke="currentColor"
 														viewBox="0 0 24 24"
@@ -168,7 +168,7 @@ export default async function BandasPage() {
 											</div>
 										</Link>
 									</Button>
-									<div className="h-[1px] bg-gray-800"></div>
+									<div className="h-[1px] bg-border"></div>
 								</div>
 							))}
 						</div>

@@ -35,7 +35,7 @@ export default function DashboardPage() {
 					return;
 				}
 
-				const { data: bandas, error } = await supabase.from("bandas").select("*").eq("user_id", user.id);
+				const { data: bandas, error } = await supabase.from("bandas").select("*").eq("criador_id", user.id);
 
 				if (error) throw error;
 				setBandas(bandas || []);
@@ -50,11 +50,11 @@ export default function DashboardPage() {
 	}, [router, setLoading, setLoadingMessage, supabase]);
 
 	return (
-		<div className="min-h-screen flex flex-col bg-gray-900">
+		<div className="min-h-screen flex flex-col bg-background">
 			<Sheet>
 				<SheetTrigger asChild>
 					<Button variant="ghost" size="icon" aria-label="Abrir menu">
-						<Menu className="w-6 h-6 text-white" />
+						<Menu className="w-6 h-6" />
 					</Button>
 				</SheetTrigger>
 				<SheetContent side="left" className="max-w-xs p-0">
@@ -78,7 +78,7 @@ export default function DashboardPage() {
 			</Sheet>
 			{/* Conteúdo do dashboard */}
 			<div className="flex-1 flex items-center justify-center">
-				<h1 className="text-3xl font-bold text-white">Dashboard</h1>
+				<h1 className="text-3xl font-bold">Dashboard</h1>
 			</div>
 			<main className="container mx-auto py-8">
 				<h1 className="text-3xl font-bold mb-8">Suas Bandas</h1>
@@ -86,11 +86,11 @@ export default function DashboardPage() {
 					{bandas.map((banda) => (
 						<div
 							key={banda.id}
-							className="bg-gray-800 p-6 rounded-lg shadow-lg cursor-pointer hover:bg-gray-700 transition"
+							className="bg-card p-6 rounded-lg shadow-lg cursor-pointer hover:bg-muted transition"
 							onClick={() => router.push(`/dashboard/${banda.id}`)}
 						>
 							<h2 className="text-xl font-semibold mb-2">{banda.nome}</h2>
-							<p className="text-sm text-gray-400">
+							<p className="text-sm text-muted-foreground">
 								Criada em: {new Date(banda.created_at).toLocaleDateString("pt-BR")}
 							</p>
 						</div>

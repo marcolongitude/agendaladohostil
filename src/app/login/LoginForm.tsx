@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function LoginForm() {
 	const [email, setEmail] = useState("");
@@ -74,59 +76,43 @@ export default function LoginForm() {
 	return (
 		<div className="space-y-6">
 			<form onSubmit={handleSubmit} className="space-y-4">
-				<div>
-					<label htmlFor="email" className="block text-sm font-medium text-gray-300">
-						Email
-					</label>
-					<input
-						type="email"
-						id="email"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-						required
-					/>
+				<div className="space-y-2">
+					<Label htmlFor="email">Email</Label>
+					<Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
 				</div>
-				<div>
-					<label htmlFor="senha" className="block text-sm font-medium text-gray-300">
-						Senha
-					</label>
-					<input
+				<div className="space-y-2">
+					<Label htmlFor="senha">Senha</Label>
+					<Input
 						type="password"
 						id="senha"
 						value={senha}
 						onChange={(e) => setSenha(e.target.value)}
-						className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
 						required
 					/>
 				</div>
 				{error && (
-					<div className="text-red-400 text-sm">
+					<div className="text-destructive text-sm">
 						{error}
 						{needsEmailConfirmation && (
 							<Button
 								onClick={handleResendConfirmation}
 								disabled={loading}
-								className="ml-2 text-indigo-400 hover:text-indigo-300"
 								variant="link"
+								className="ml-2"
 							>
 								Reenviar email de confirmação
 							</Button>
 						)}
 					</div>
 				)}
-				<button
-					type="submit"
-					disabled={loading}
-					className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-				>
+				<Button type="submit" disabled={loading} className="w-full">
 					{loading ? "Entrando..." : "Entrar"}
-				</button>
+				</Button>
 			</form>
 			<div className="text-center">
-				<p className="text-sm text-gray-400">
+				<p className="text-sm text-muted-foreground">
 					Não tem uma conta?{" "}
-					<Link href="/cadastro" className="font-medium text-indigo-400 hover:text-indigo-300">
+					<Link href="/cadastro" className="text-primary hover:underline">
 						Cadastre-se
 					</Link>
 				</p>
