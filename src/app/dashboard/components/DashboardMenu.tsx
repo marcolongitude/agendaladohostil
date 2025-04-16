@@ -61,6 +61,14 @@ export function DashboardMenu({
 									return;
 								}
 
+								// Limpa os cookies
+								document.cookie.split(";").forEach((c) => {
+									document.cookie = c
+										.replace(/^ +/, "")
+										.replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+								});
+
+								// Força um reload da página para garantir que todos os estados sejam limpos
 								window.location.href = "/login";
 							} catch (error) {
 								console.error("Erro ao fazer logout:", error);
