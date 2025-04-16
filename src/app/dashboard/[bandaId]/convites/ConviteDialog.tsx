@@ -17,7 +17,12 @@ const conviteSchema = z.object({
 
 type ConviteFormData = z.infer<typeof conviteSchema>;
 
-export function ConviteDialog({ bandaId }: { bandaId: string }) {
+interface ConviteDialogProps {
+	bandaId: string;
+	onSuccess?: () => void;
+}
+
+export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
 	const form = useForm<ConviteFormData>({
@@ -41,6 +46,9 @@ export function ConviteDialog({ bandaId }: { bandaId: string }) {
 			toast.success("Convite criado com sucesso!");
 			setOpen(false);
 			router.refresh();
+			if (onSuccess) {
+				onSuccess();
+			}
 		} catch (err: any) {
 			toast.error(err.message || "Erro ao criar convite");
 		}

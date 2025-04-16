@@ -1,8 +1,12 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
+
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
 import { ConviteDialog } from "./ConviteDialog";
 import { CopyLinkButton } from "./CopyLinkButton";
+import { useEffect, useState } from "react";
+import { useLoading } from "@/contexts/LoadingContext";
+import { useParams } from "next/navigation";
 
 interface Convite {
 	id: string;
@@ -12,48 +16,67 @@ interface Convite {
 	email: string | null;
 }
 
-async function getConvites(bandaId: string) {
-	const cookieStore = cookies();
-	const supabase = createServerComponentClient({ cookies: () => cookieStore });
-	const { data, error } = await supabase
-		.from("convites_banda")
-		.select("id, token, status, expires_at, email")
-		.eq("banda_id", bandaId)
-		.order("created_at", { ascending: false });
-
-	if (error) {
-		throw new Error("Erro ao buscar convites");
-	}
-
-	return data as Convite[];
+interface PageProps {
+	params: {
+		bandaId: string;
+	};
 }
 
-async function getUserType() {
-	const cookieStore = cookies();
-	const supabase = createServerComponentClient({ cookies: () => cookieStore });
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
+export default function ConvitesPage(props: PageProps) {
+	const params = useParams();
+	const [convites, setConvites] = useState<Convite[]>([]);
+	const [userType, setUserType] = useState<string>();
+	const { setLoading, setLoadingMessage } = useLoading();
+	const supabase = createClientComponentClient();
+	const router = useRouter();
+	const bandaId = params?.bandaId as string;
 
-	if (!user) {
-		redirect("/login");
+	async function loadData() {
+		try {
+			setLoading(true);
+			setLoadingMessage("Carregando convites...");
+
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			if (!user) {
+				router.push("/login");
+				return;
+			}
+
+			const [convitesResult, userTypeResult] = await Promise.all([
+				supabase
+					.from("convites_banda")
+					.select("id, token, status, expires_at, email")
+					.eq("banda_id", bandaId)
+					.order("created_at", { ascending: false }),
+				supabase.from("musicos").select("tipo").eq("id", user.id).single(),
+			]);
+
+			if (convitesResult.error) {
+				throw new Error("Erro ao buscar convites");
+			}
+
+			setConvites(convitesResult.data);
+			setUserType(userTypeResult.data?.tipo);
+		} catch (error) {
+			console.error("Erro ao carregar dados:", error);
+		} finally {
+			setLoading(false);
+		}
 	}
 
-	const { data: musico } = await supabase.from("musicos").select("tipo").eq("id", user.id).single();
+	useEffect(() => {
+		loadData();
+	}, [bandaId]);
 
-	return musico?.tipo;
-}
-
-export default async function ConvitesPage({ params }: { params: { bandaId: string } }) {
-	const convites = await getConvites(params.bandaId);
-	const userType = await getUserType();
 	const isManager = userType === "manager";
 
 	return (
 		<main className="p-8 max-w-3xl mx-auto">
 			<header className="flex justify-between items-center mb-8">
 				<h1 className="text-3xl font-bold text-white">Convites</h1>
-				{isManager && <ConviteDialog bandaId={params.bandaId} />}
+				{isManager && <ConviteDialog bandaId={bandaId} onSuccess={loadData} />}
 			</header>
 
 			<ul className="space-y-4">

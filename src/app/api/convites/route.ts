@@ -5,7 +5,7 @@ import { randomBytes } from "crypto";
 
 export async function POST(request: Request) {
 	try {
-		const { banda_id, email } = await request.json();
+		const { banda_id, email, expires_at } = await request.json();
 		if (!banda_id) {
 			return NextResponse.json({ error: "banda_id é obrigatório" }, { status: 400 });
 		}
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 			email: email || null,
 			token,
 			status: "pendente",
-			// expires_at: pode ser adicionado se quiser expiração
+			expires_at: expires_at || null,
 		});
 
 		if (error) {

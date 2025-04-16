@@ -1,11 +1,53 @@
+"use client";
+
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useLoading } from "@/contexts/LoadingContext";
 import Link from "next/link";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 
+interface Banda {
+	id: string;
+	nome: string;
+	created_at: string;
+}
+
 export default function DashboardPage() {
-	// Nome da banda pode ser passado via props, context ou buscado dinamicamente
-	// Aqui, exemplo fixo:
+	const [bandas, setBandas] = useState<Banda[]>([]);
+	const { setLoading, setLoadingMessage } = useLoading();
+	const supabase = createClientComponentClient();
+	const router = useRouter();
+
+	useEffect(() => {
+		async function loadBandas() {
+			try {
+				setLoading(true);
+				setLoadingMessage("Carregando suas bandas...");
+
+				const {
+					data: { user },
+				} = await supabase.auth.getUser();
+				if (!user) {
+					router.push("/login");
+					return;
+				}
+
+				const { data: bandas, error } = await supabase.from("bandas").select("*").eq("user_id", user.id);
+
+				if (error) throw error;
+				setBandas(bandas || []);
+			} catch (error) {
+				console.error("Erro ao carregar bandas:", error);
+			} finally {
+				setLoading(false);
+			}
+		}
+
+		loadBandas();
+	}, [router, setLoading, setLoadingMessage, supabase]);
 
 	return (
 		<div className="min-h-screen flex flex-col bg-gray-900">
@@ -38,6 +80,23 @@ export default function DashboardPage() {
 			<div className="flex-1 flex items-center justify-center">
 				<h1 className="text-3xl font-bold text-white">Dashboard</h1>
 			</div>
+			<main className="container mx-auto py-8">
+				<h1 className="text-3xl font-bold mb-8">Suas Bandas</h1>
+				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					{bandas.map((banda) => (
+						<div
+							key={banda.id}
+							className="bg-gray-800 p-6 rounded-lg shadow-lg cursor-pointer hover:bg-gray-700 transition"
+							onClick={() => router.push(`/dashboard/${banda.id}`)}
+						>
+							<h2 className="text-xl font-semibold mb-2">{banda.nome}</h2>
+							<p className="text-sm text-gray-400">
+								Criada em: {new Date(banda.created_at).toLocaleDateString("pt-BR")}
+							</p>
+						</div>
+					))}
+				</div>
+			</main>
 		</div>
 	);
 }
