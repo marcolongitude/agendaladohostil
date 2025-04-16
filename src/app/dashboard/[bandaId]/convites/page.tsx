@@ -4,7 +4,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
 import { ConviteDialog } from "./ConviteDialog";
 import { CopyLinkButton } from "./CopyLinkButton";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useLoading } from "@/contexts/LoadingContext";
 import { useParams } from "next/navigation";
 
@@ -18,63 +18,117 @@ interface Convite {
 
 export default function ConvitesPage() {
 	const params = useParams();
-	const [convites, setConvites] = useState<Convite[]>([]);
-	const [userType, setUserType] = useState<string>();
-	const { setLoading, setLoadingMessage } = useLoading();
-	const supabase = createClientComponentClient();
 	const router = useRouter();
-	const bandaId = params?.bandaId as string;
+	const { setLoading, setLoadingMessage } = useLoading();
+	const [data, setData] = useState<{
+		convites: Convite[];
+		userType?: string;
+		isLoading: boolean;
+	}>({ convites: [], isLoading: true });
 
-	const loadData = useCallback(async () => {
+	useEffect(() => {
+		const supabase = createClientComponentClient();
+		const bandaId = params?.bandaId as string;
+		let isMounted = true;
+
+		async function loadData() {
+			if (!isMounted) return;
+
+			try {
+				const {
+					data: { user },
+				} = await supabase.auth.getUser();
+
+				if (!user) {
+					router.push("/login");
+					return;
+				}
+
+				const [convitesResult, userTypeResult] = await Promise.all([
+					supabase
+						.from("convites_banda")
+						.select("id, token, status, expires_at, email")
+						.eq("banda_id", bandaId)
+						.order("created_at", { ascending: false }),
+					supabase.from("musicos").select("tipo").eq("id", user.id).single(),
+				]);
+
+				if (!isMounted) return;
+
+				if (convitesResult.error) {
+					throw new Error("Erro ao buscar convites");
+				}
+
+				setData({
+					convites: convitesResult.data,
+					userType: userTypeResult.data?.tipo,
+					isLoading: false,
+				});
+			} catch (error) {
+				console.error("Erro ao carregar dados:", error);
+				if (isMounted) {
+					setData((prev) => ({ ...prev, isLoading: false }));
+				}
+			}
+		}
+
+		setLoading(true);
+		setLoadingMessage("Carregando convites...");
+		loadData().finally(() => {
+			if (isMounted) {
+				setLoading(false);
+			}
+		});
+
+		return () => {
+			isMounted = false;
+		};
+	}, [params?.bandaId]);
+
+	const handleConviteCreated = async () => {
+		setData((prev) => ({ ...prev, isLoading: true }));
+		setLoading(true);
+		setLoadingMessage("Atualizando convites...");
+
+		const supabase = createClientComponentClient();
+		const bandaId = params?.bandaId as string;
+
 		try {
-			setLoading(true);
-			setLoadingMessage("Carregando convites...");
+			const { data: convitesData, error } = await supabase
+				.from("convites_banda")
+				.select("id, token, status, expires_at, email")
+				.eq("banda_id", bandaId)
+				.order("created_at", { ascending: false });
 
-			const {
-				data: { user },
-			} = await supabase.auth.getUser();
-			if (!user) {
-				router.push("/login");
-				return;
-			}
+			if (error) throw error;
 
-			const [convitesResult, userTypeResult] = await Promise.all([
-				supabase
-					.from("convites_banda")
-					.select("id, token, status, expires_at, email")
-					.eq("banda_id", bandaId)
-					.order("created_at", { ascending: false }),
-				supabase.from("musicos").select("tipo").eq("id", user.id).single(),
-			]);
-
-			if (convitesResult.error) {
-				throw new Error("Erro ao buscar convites");
-			}
-
-			setConvites(convitesResult.data);
-			setUserType(userTypeResult.data?.tipo);
+			setData((prev) => ({
+				...prev,
+				convites: convitesData,
+				isLoading: false,
+			}));
 		} catch (error) {
-			console.error("Erro ao carregar dados:", error);
+			console.error("Erro ao atualizar convites:", error);
 		} finally {
 			setLoading(false);
 		}
-	}, [bandaId, router, setLoading, setLoadingMessage, supabase]);
+	};
 
-	useEffect(() => {
-		loadData();
-	}, [loadData]);
-
-	const isManager = userType === "manager";
+	if (data.isLoading) {
+		return null; // ou um componente de loading se preferir
+	}
 
 	return (
 		<main className="p-8 max-w-3xl mx-auto">
 			<header className="flex justify-between items-center mb-8">
 				<h1 className="text-3xl font-bold text-white">Convites</h1>
-				{isManager && <ConviteDialog bandaId={bandaId} onSuccess={loadData} />}
+				{data.userType === "manager" && (
+					<ConviteDialog bandaId={params?.bandaId as string} onSuccess={handleConviteCreated} />
+				)}
 			</header>
 
 			<ul className="space-y-4">
-				{convites.map((convite) => (
+				{data.convites.map((convite) => (
 					<li
 						key={convite.id}
 						className="bg-gray-800 p-4 rounded-lg border border-gray-700 flex items-center justify-between gap-4"

@@ -1,5 +1,13 @@
 "use client";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+	Dialog,
+	DialogTrigger,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogFooter,
+	DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +72,7 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Criar convite</DialogTitle>
+					<DialogDescription>Crie um novo convite para adicionar um músico à banda.</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 					<div>
