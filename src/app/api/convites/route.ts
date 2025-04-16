@@ -42,12 +42,35 @@ export async function POST(request: Request) {
 // Novo método GET para listar convites de uma banda
 export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url);
+	const token = searchParams.get("token");
 	const banda_id = searchParams.get("banda_id");
+	const cookieStore = cookies();
+	const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+
+	if (token) {
+		// Busca convite pelo token, incluindo nome da banda
+		const { data, error } = await supabase
+			.from("convites_banda")
+			.select("id, token, status, expires_at, email, banda_id, banda:bandas(nome)")
+			.eq("token", token)
+			.single();
+		if (error || !data) {
+			return NextResponse.json({ error: error?.message || "Convite não encontrado" }, { status: 404 });
+		}
+		return NextResponse.json({
+			id: data.id,
+			token: data.token,
+			status: data.status,
+			expires_at: data.expires_at,
+			email: data.email,
+			banda_id: data.banda_id,
+			banda_nome: Array.isArray(data.banda) ? data.banda[0]?.nome || "" : data.banda?.nome || "",
+		});
+	}
+
 	if (!banda_id) {
 		return NextResponse.json({ error: "banda_id é obrigatório" }, { status: 400 });
 	}
-	const cookieStore = cookies();
-	const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 	const { data, error } = await supabase
 		.from("convites_banda")
 		.select("id, token, status, expires_at, email")

@@ -258,3 +258,45 @@ BEGIN
         END IF;
     END IF;
 END $$; 
+
+-- Adicionar política de UPDATE para convites_banda
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'convites_banda' AND policyname = 'Atualizar convite') THEN
+        CREATE POLICY "Atualizar convite" ON convites_banda FOR UPDATE USING (true);
+    END IF;
+END $$; 
+
+-- Função para verificar e atualizar convites expirados
+CREATE OR REPLACE FUNCTION verificar_convites_expirados()
+RETURNS VOID AS $$
+BEGIN
+  UPDATE convites_banda
+  SET status = 'expirado'
+  WHERE status = 'pendente'
+  AND expires_at < NOW();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Criar um trigger para executar a verificação de convites expirados
+CREATE OR REPLACE FUNCTION trigger_verificar_convites_expirados()
+RETURNS TRIGGER AS $$
+BEGIN
+  PERFORM verificar_convites_expirados();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Criar o trigger (apenas se não existir)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger 
+    WHERE tgname = 'trigger_verificar_convites_expirados'
+  ) THEN
+    CREATE TRIGGER trigger_verificar_convites_expirados
+    AFTER INSERT OR UPDATE ON convites_banda
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_verificar_convites_expirados();
+  END IF;
+END $$; 

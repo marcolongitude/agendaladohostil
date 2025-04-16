@@ -1,85 +1,96 @@
-import { ClipboardCopy } from "lucide-react";
-
-function statusColor(status: string) {
-	switch (status) {
-		case "pendente":
-			return "text-yellow-400 border-yellow-400";
-		case "aceito":
-			return "text-green-400 border-green-400";
-		case "expirado":
-			return "text-gray-400 border-gray-400";
-		default:
-			return "text-gray-400 border-gray-400";
-	}
-}
-
-function formatDate(dateStr: string | null) {
-	if (!dateStr) return "-";
-	const date = new Date(dateStr);
-	return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-}
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { ConviteDialog } from "./ConviteDialog";
+import { CopyLinkButton } from "./CopyLinkButton";
 
 interface Convite {
 	id: string;
 	token: string;
-	status: string;
+	status: "pendente" | "aceito" | "expirado";
 	expires_at: string | null;
 	email: string | null;
 }
 
-async function getConvites(bandaId: string): Promise<Convite[]> {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-	const res = await fetch(`${baseUrl}/api/convites?banda_id=${bandaId}`, { cache: "no-store" });
-	if (!res.ok) return [];
-	return res.json();
+async function getConvites(bandaId: string) {
+	const cookieStore = cookies();
+	const supabase = createServerComponentClient({ cookies: () => cookieStore });
+	const { data, error } = await supabase
+		.from("convites_banda")
+		.select("id, token, status, expires_at, email")
+		.eq("banda_id", bandaId)
+		.order("created_at", { ascending: false });
+
+	if (error) {
+		throw new Error("Erro ao buscar convites");
+	}
+
+	return data as Convite[];
+}
+
+async function getUserType() {
+	const cookieStore = cookies();
+	const supabase = createServerComponentClient({ cookies: () => cookieStore });
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+
+	if (!user) {
+		redirect("/login");
+	}
+
+	const { data: musico } = await supabase.from("musicos").select("tipo").eq("id", user.id).single();
+
+	return musico?.tipo;
 }
 
 export default async function ConvitesPage({ params }: { params: { bandaId: string } }) {
 	const convites = await getConvites(params.bandaId);
+	const userType = await getUserType();
+	const isManager = userType === "manager";
 
 	return (
-		<div className="min-h-screen bg-gray-900 px-2 py-6">
-			<h2 className="text-lg font-semibold text-center text-gray-300 mb-8">Convites</h2>
-			<div className="max-w-xl mx-auto space-y-4">
-				{convites.length === 0 && <div className="text-center text-gray-500">Nenhum convite encontrado.</div>}
+		<main className="p-8 max-w-3xl mx-auto">
+			<header className="flex justify-between items-center mb-8">
+				<h1 className="text-3xl font-bold text-white">Convites</h1>
+				{isManager && <ConviteDialog bandaId={params.bandaId} />}
+			</header>
+
+			<ul className="space-y-4">
 				{convites.map((convite) => (
-					<div
+					<li
 						key={convite.id}
-						className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 border border-gray-700"
+						className="bg-gray-800 p-4 rounded-lg border border-gray-700 flex items-center justify-between gap-4"
 					>
-						<div className="flex-1">
-							<div className="text-xs text-gray-400">ID</div>
-							<div className="text-sm font-mono text-white break-all">{convite.token}</div>
-							<div className="flex items-center gap-2 mt-1">
+						<div className="min-w-0 space-y-1">
+							<p className="flex items-center gap-2 overflow-hidden">
+								<span className="text-sm text-gray-400 flex-shrink-0">ID:</span>
+								<code className="text-sm font-mono text-gray-300 truncate">{convite.token}</code>
+							</p>
+							<p className="flex items-center gap-2">
+								<span className="text-sm text-gray-400">Status:</span>
 								<span
-									className={`text-xs font-bold border rounded px-2 py-0.5 ${statusColor(
-										convite.status
-									)}`}
+									className={`text-sm ${
+										convite.status === "pendente"
+											? "text-yellow-500"
+											: convite.status === "aceito"
+											? "text-green-500"
+											: "text-gray-500"
+									}`}
 								>
 									{convite.status}
 								</span>
-								<span className="text-xs text-gray-400">Expira: {formatDate(convite.expires_at)}</span>
-							</div>
+							</p>
+							{convite.expires_at && (
+								<p className="text-sm text-gray-400">
+									Expira em: {new Date(convite.expires_at).toLocaleDateString("pt-BR")}
+								</p>
+							)}
 						</div>
-						<form action="#" className="ml-4">
-							<button
-								type="button"
-								className="p-2 rounded hover:bg-gray-700"
-								title="Copiar link do convite"
-								onClick={async () => {
-									"use client";
-									const url = `${
-										process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-									}/convite/${convite.token}`;
-									await navigator.clipboard.writeText(url);
-								}}
-							>
-								<ClipboardCopy className="w-5 h-5 text-gray-400 hover:text-white" />
-							</button>
-						</form>
-					</div>
+						{convite.status === "pendente" && <CopyLinkButton token={convite.token} />}
+					</li>
 				))}
-			</div>
-		</div>
+			</ul>
+		</main>
 	);
 }

@@ -1,7 +1,3 @@
-import { Menu, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { cookies } from "next/headers";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { DashboardMenu } from "./DashboardMenu";
@@ -24,16 +20,6 @@ async function getUsuario() {
 	return musico
 		? { nome: musico.nome, tipo: musico.tipo }
 		: { nome: user.user_metadata?.nome || user.email, tipo: user.user_metadata?.tipo || "musico" };
-}
-
-function getInitials(nome: string) {
-	if (!nome) return "";
-	return nome
-		.split(" ")
-		.map((n) => n[0])
-		.join("")
-		.toUpperCase()
-		.slice(0, 2);
 }
 
 export default async function DashboardLayout({

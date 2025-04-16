@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export function DashboardMenu({
 	bandaNome,
@@ -38,28 +39,43 @@ export function DashboardMenu({
 						<Menu className="w-6 h-6 text-white" />
 					</Button>
 				</SheetTrigger>
-				<SheetContent side="left" className="max-w-xs p-0 pt-16">
-					<SheetHeader className="mt-8">
-						<SheetTitle className="text-center">Menu</SheetTitle>
-					</SheetHeader>
-					<div className="flex flex-col items-center gap-2 py-4 px-2">
-						<div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-2xl font-bold text-white mb-1">
-							{getInitials(usuario?.nome || "")}
+				<SheetContent side="left" className="max-w-xs p-0 pt-16 flex flex-col justify-between">
+					<div>
+						<SheetHeader className="mt-8">
+							<SheetTitle className="text-center">Menu</SheetTitle>
+						</SheetHeader>
+						<div className="flex flex-col items-center gap-2 py-4 px-2">
+							<div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-2xl font-bold text-white mb-1">
+								{getInitials(usuario?.nome || "")}
+							</div>
+							<div className="text-white font-semibold">{usuario?.nome || "Usuário"}</div>
+							<div className="text-xs text-gray-400 mb-2">
+								{usuario?.tipo === "manager" ? "Manager" : "Músico"}
+							</div>
+							<div className="w-full border-b border-gray-800 my-2" />
+							<nav className="flex flex-col gap-2 w-full">
+								<SheetClose asChild>
+									<Link href={`/dashboard/${bandaId}/convites`}>
+										<Button variant="ghost" className="w-full justify-start">
+											Convites
+										</Button>
+									</Link>
+								</SheetClose>
+							</nav>
 						</div>
-						<div className="text-white font-semibold">{usuario?.nome || "Usuário"}</div>
-						<div className="text-xs text-gray-400 mb-2">
-							{usuario?.tipo === "manager" ? "Manager" : "Músico"}
-						</div>
-						<div className="w-full border-b border-gray-800 my-2" />
-						<nav className="flex flex-col gap-2 w-full">
-							<SheetClose asChild>
-								<Link href={`/dashboard/${bandaId}/convites`}>
-									<Button variant="ghost" className="w-full justify-start">
-										Convites
-									</Button>
-								</Link>
-							</SheetClose>
-						</nav>
+					</div>
+					<div className="p-4 border-t border-gray-800">
+						<Button
+							variant="destructive"
+							className="w-full"
+							onClick={async () => {
+								const supabase = createClientComponentClient();
+								await supabase.auth.signOut();
+								router.push("/login");
+							}}
+						>
+							Sair
+						</Button>
 					</div>
 				</SheetContent>
 			</Sheet>
