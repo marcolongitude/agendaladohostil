@@ -2,17 +2,19 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
+type Banda = {
+	id: string;
+	nome: string;
+	descricao: string;
+};
 
-interface BandaMembro {
+type MembroBanda = {
 	banda_id: string;
 	instrumento: string;
-	bandas: {
-		id: string;
-		nome: string;
-		descricao: string;
-	};
-}
+	bandas: Banda[];
+};
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
 	try {
@@ -55,10 +57,10 @@ export async function POST(request: Request) {
 		}
 
 		// Formata os dados das bandas
-		const bandas = (bandasData || []).map((membro: any) => ({
+		const bandas = (bandasData || []).map((membro: MembroBanda) => ({
 			id: membro.banda_id,
-			nome: membro.bandas.nome,
-			descricao: membro.bandas.descricao,
+			nome: membro.bandas[0]?.nome || "",
+			descricao: membro.bandas[0]?.descricao || "",
 			instrumento: membro.instrumento,
 		}));
 

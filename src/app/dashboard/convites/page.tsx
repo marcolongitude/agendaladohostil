@@ -4,6 +4,19 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLoading } from "@/contexts/LoadingContext";
+import { PostgrestError } from "@supabase/supabase-js";
+
+interface Banda {
+	nome: string;
+}
+
+interface ConviteResponse {
+	id: string;
+	token: string;
+	banda_id: string;
+	status: "pendente" | "aceito" | "expirado";
+	banda: Banda | Banda[];
+}
 
 interface Convite {
 	id: string;
@@ -33,7 +46,7 @@ export default function ConvitesPage() {
 					return;
 				}
 
-				const { data: convitesData, error: convitesError } = await supabase
+				const { data: convitesData, error: convitesError } = (await supabase
 					.from("convites_banda")
 					.select(
 						`
@@ -47,7 +60,7 @@ export default function ConvitesPage() {
 					`
 					)
 					.eq("email", user.email)
-					.eq("status", "pendente");
+					.eq("status", "pendente")) as { data: ConviteResponse[] | null; error: PostgrestError | null };
 
 				if (convitesError) throw convitesError;
 
@@ -56,7 +69,7 @@ export default function ConvitesPage() {
 					token: convite.token,
 					status: convite.status,
 					banda_id: convite.banda_id,
-					banda_nome: convite.banda?.nome || "",
+					banda_nome: Array.isArray(convite.banda) ? convite.banda[0]?.nome || "" : convite.banda?.nome || "",
 				}));
 
 				setConvites(convitesFormatados);
@@ -68,7 +81,7 @@ export default function ConvitesPage() {
 		}
 
 		loadConvites();
-	}, []); // Executar apenas na montagem do componente
+	}, [router, setLoading, setLoadingMessage, supabase]);
 
 	const handleAcceptInvite = async (conviteId: string, bandaId: string) => {
 		try {

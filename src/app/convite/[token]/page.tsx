@@ -1,3 +1,4 @@
+import { use } from "react";
 import { AceitarConviteButton } from "./AceitarConviteButton";
 
 interface Convite {
@@ -23,8 +24,8 @@ function formatDate(dateStr: string | null) {
 	return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
-export default async function ConvitePage({ params }: { params: { token: string } }) {
-	const convite = await getConvite(params.token);
+function ConvitePage({ token }: { token: string }) {
+	const convite = use(getConvite(token));
 	if (!convite) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -36,8 +37,6 @@ export default async function ConvitePage({ params }: { params: { token: string 
 		);
 	}
 
-	console.log("convite", convite);
-
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-gray-900  px-2">
 			<div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700 mx-2">
@@ -48,8 +47,13 @@ export default async function ConvitePage({ params }: { params: { token: string 
 					<div className="text-sm text-gray-400">Expira em:</div>
 					<div className="text-md font-semibold text-blue-300 mb-4">{formatDate(convite.expires_at)}</div>
 				</div>
-				<AceitarConviteButton token={params.token} />
+				<AceitarConviteButton token={token} />
 			</div>
 		</div>
 	);
+}
+
+export default function ConvitePageWrapper(props: { params: Promise<{ token: string }> }) {
+	const { token } = use(props.params);
+	return <ConvitePage token={token} />;
 }

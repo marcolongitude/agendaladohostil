@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
+import { PostgrestError } from "@supabase/supabase-js";
+
+type Banda = {
+	nome: string;
+};
+
+type ConviteWithBanda = {
+	id: string;
+	token: string;
+	status: string;
+	expires_at: string | null;
+	email: string | null;
+	banda_id: string;
+	banda: Banda | Banda[];
+};
 
 export async function POST(request: Request) {
 	try {
@@ -49,11 +64,11 @@ export async function GET(request: Request) {
 
 	if (token) {
 		// Busca convite pelo token, incluindo nome da banda
-		const { data, error } = await supabase
+		const { data, error } = (await supabase
 			.from("convites_banda")
 			.select("id, token, status, expires_at, email, banda_id, banda:bandas(nome)")
 			.eq("token", token)
-			.single();
+			.single()) as { data: ConviteWithBanda | null; error: PostgrestError | null };
 		if (error || !data) {
 			return NextResponse.json({ error: error?.message || "Convite não encontrado" }, { status: 404 });
 		}

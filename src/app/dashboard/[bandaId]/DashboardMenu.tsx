@@ -11,7 +11,7 @@ export function DashboardMenu({
 	bandaId,
 	usuario,
 }: {
-	bandaNome: string;
+	bandaNome?: string;
 	bandaId: string;
 	usuario: { nome: string; tipo: string } | null;
 }) {

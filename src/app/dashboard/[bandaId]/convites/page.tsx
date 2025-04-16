@@ -4,7 +4,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
 import { ConviteDialog } from "./ConviteDialog";
 import { CopyLinkButton } from "./CopyLinkButton";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLoading } from "@/contexts/LoadingContext";
 import { useParams } from "next/navigation";
 
@@ -16,13 +16,7 @@ interface Convite {
 	email: string | null;
 }
 
-interface PageProps {
-	params: {
-		bandaId: string;
-	};
-}
-
-export default function ConvitesPage(props: PageProps) {
+export default function ConvitesPage() {
 	const params = useParams();
 	const [convites, setConvites] = useState<Convite[]>([]);
 	const [userType, setUserType] = useState<string>();
@@ -31,7 +25,7 @@ export default function ConvitesPage(props: PageProps) {
 	const router = useRouter();
 	const bandaId = params?.bandaId as string;
 
-	async function loadData() {
+	const loadData = useCallback(async () => {
 		try {
 			setLoading(true);
 			setLoadingMessage("Carregando convites...");
@@ -64,11 +58,11 @@ export default function ConvitesPage(props: PageProps) {
 		} finally {
 			setLoading(false);
 		}
-	}
+	}, [bandaId, router, setLoading, setLoadingMessage, supabase]);
 
 	useEffect(() => {
 		loadData();
-	}, [bandaId]);
+	}, [loadData]);
 
 	const isManager = userType === "manager";
 

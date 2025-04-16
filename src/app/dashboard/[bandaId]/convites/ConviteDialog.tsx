@@ -49,8 +49,8 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 			if (onSuccess) {
 				onSuccess();
 			}
-		} catch (err: any) {
-			toast.error(err.message || "Erro ao criar convite");
+		} catch (err: unknown) {
+			toast.error(err instanceof Error ? err.message : "Erro ao criar convite");
 		}
 	}
 
