@@ -6,6 +6,7 @@ import { DashboardMenu } from "./components/DashboardMenu";
 type Usuario = {
 	nome: string;
 	tipo: string;
+	email: string;
 };
 
 type Banda = {
@@ -35,15 +36,16 @@ async function getUsuario(): Promise<Usuario | null> {
 
 		const { data: musico, error: musicoError } = await supabase
 			.from("musicos")
-			.select("nome, tipo")
+			.select("nome, tipo, email")
 			.eq("id", user.id)
 			.single();
 
 		if (musicoError) {
 			console.error("Erro ao buscar músico:", musicoError);
 			return {
-				nome: user.user_metadata?.nome || user.email,
+				nome: user.user_metadata?.nome || user.email || "",
 				tipo: user.user_metadata?.tipo || "musico",
+				email: user.email || "",
 			};
 		}
 
@@ -51,10 +53,12 @@ async function getUsuario(): Promise<Usuario | null> {
 			? {
 					nome: musico.nome,
 					tipo: musico.tipo,
+					email: musico.email || user.email || "",
 			  }
 			: {
-					nome: user.user_metadata?.nome || user.email,
+					nome: user.user_metadata?.nome || user.email || "",
 					tipo: user.user_metadata?.tipo || "musico",
+					email: user.email || "",
 			  };
 	} catch (error) {
 		console.error("Erro ao buscar usuário:", error);
@@ -80,7 +84,7 @@ export default async function DashboardLayout({
 
 	return (
 		<div className="min-h-screen flex flex-col bg-background">
-			<DashboardMenu usuario={usuario} bandaId={banda?.id} />
+			<DashboardMenu usuario={usuario} bandaId={banda?.id} bandaNome={banda?.nome} />
 			<div className="flex-1">{children}</div>
 		</div>
 	);

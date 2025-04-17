@@ -3,6 +3,19 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useLoading } from "@/contexts/LoadingContext";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+
+const emailSchema = z.object({
+	email: z.string().email("E-mail inválido"),
+});
+
+type EmailFormData = z.infer<typeof emailSchema>;
 
 interface AceitarConviteButtonProps {
 	token: string;
@@ -11,11 +24,15 @@ interface AceitarConviteButtonProps {
 export function AceitarConviteButton({ token }: AceitarConviteButtonProps) {
 	const router = useRouter();
 	const { setLoading, setLoadingMessage } = useLoading();
+	const form = useForm<EmailFormData>({
+		resolver: zodResolver(emailSchema),
+		defaultValues: { email: "" },
+	});
 
-	async function handleAceitarConvite() {
+	async function handleAceitarConvite(data: EmailFormData) {
 		try {
 			setLoading(true);
-			setLoadingMessage("Aceitando convite...");
+			setLoadingMessage("Verificando e-mail...");
 
 			const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 			const res = await fetch(`${baseUrl}/api/convites/aceitar`, {
@@ -23,25 +40,46 @@ export function AceitarConviteButton({ token }: AceitarConviteButtonProps) {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ token }),
+				body: JSON.stringify({ token, email: data.email }),
 			});
 
 			if (!res.ok) {
-				throw new Error("Erro ao aceitar convite");
+				const error = await res.json();
+				throw new Error(error.message || "Erro ao aceitar convite");
 			}
 
-			router.push("/bandas");
+			const response = await res.json();
+
+			// Faz logout antes de redirecionar
+			setLoadingMessage("Finalizando...");
+			const supabase = createClientComponentClient();
+			await supabase.auth.signOut();
+
+			if (response.requiresSignup) {
+				router.push(`/cadastro?email=${encodeURIComponent(data.email)}&token=${token}`);
+			} else {
+				router.push("/login");
+			}
 		} catch (error) {
 			console.error("Erro ao aceitar convite:", error);
-			alert("Erro ao aceitar convite. Tente novamente.");
+			toast.error(error instanceof Error ? error.message : "Erro ao aceitar convite");
 		} finally {
 			setLoading(false);
 		}
 	}
 
 	return (
-		<Button onClick={handleAceitarConvite} className="w-full">
-			Aceitar Convite
-		</Button>
+		<form onSubmit={form.handleSubmit(handleAceitarConvite)} className="space-y-4">
+			<div className="space-y-2">
+				<Label htmlFor="email">Seu melhor e-mail</Label>
+				<Input id="email" type="email" placeholder="email@exemplo.com" {...form.register("email")} />
+				{form.formState.errors.email && (
+					<span className="text-xs text-red-500">{form.formState.errors.email.message}</span>
+				)}
+			</div>
+			<Button type="submit" className="w-full">
+				Aceitar Convite
+			</Button>
+		</form>
 	);
 }

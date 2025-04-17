@@ -41,11 +41,17 @@ export default async function ConvitePage({ params }: { params: Promise<{ token:
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-background">
-			<div className="text-center">
+			<div className="text-center max-w-md">
 				<h1 className="text-2xl font-bold mb-4">Convite para {convite.banda_nome}</h1>
 				<div className="mb-6">
-					<div className="text-lg text-muted-foreground mb-1">Convidado:</div>
-					<div className="text-xl font-bold mb-2">{convite.email || "Qualquer e-mail"}</div>
+					<div className="text-sm text-muted-foreground mb-4">
+						Por favor, informe seu melhor e-mail para aceitar o convite. Este e-mail será usado para:
+						<br />
+						- Acesso à plataforma
+						<br />
+						- Comunicação com a banda
+						<br />- Recuperação de senha
+					</div>
 					<div className="text-sm text-muted-foreground">Expira em:</div>
 					<div className="text-md font-semibold mb-4">{formatDate(convite.expires_at)}</div>
 				</div>

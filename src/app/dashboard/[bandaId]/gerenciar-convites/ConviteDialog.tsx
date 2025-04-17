@@ -10,17 +10,13 @@ import {
 	DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const conviteSchema = z.object({
-	email: z.string().email("E-mail inválido").optional().or(z.literal("")),
-});
+const conviteSchema = z.object({});
 
 type ConviteFormData = z.infer<typeof conviteSchema>;
 
@@ -33,17 +29,24 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 	const [open, setOpen] = useState(false);
 	const form = useForm<ConviteFormData>({
 		resolver: zodResolver(conviteSchema),
-		defaultValues: { email: "" },
+		defaultValues: {},
 	});
 
-	async function onSubmit(data: ConviteFormData) {
+	async function onSubmit() {
 		try {
-			const response = await fetch(`/api/bandas/${bandaId}/convites`, {
+			const expiresAt = new Date();
+			expiresAt.setHours(expiresAt.getHours() + 24);
+
+			const response = await fetch(`/api/convites`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ email: data.email || null }),
+				body: JSON.stringify({
+					banda_id: bandaId,
+					email: null,
+					expires_at: expiresAt.toISOString(),
+				}),
 			});
 
 			if (!response.ok) {
@@ -51,12 +54,14 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 				throw new Error(error.message || "Erro ao criar convite");
 			}
 
+			await response.json(); // Aguarda a resposta completa
+
 			toast.success("Convite criado com sucesso!");
+			if (onSuccess) {
+				await onSuccess(); // Aguarda a atualização da lista
+			}
 			setOpen(false);
 			form.reset();
-			if (onSuccess) {
-				onSuccess();
-			}
 		} catch (err: unknown) {
 			toast.error(err instanceof Error ? err.message : "Erro ao criar convite");
 		}
@@ -74,16 +79,11 @@ export function ConviteDialog({ bandaId, onSuccess }: ConviteDialogProps) {
 					<DialogTitle>Criar convite</DialogTitle>
 					<DialogDescription className="text-warning/80">
 						Crie um novo convite para adicionar um músico à banda. O convite expirará em 24 horas.
+						<br />
+						<br />O músico convidado poderá informar seu melhor e-mail no momento de aceitar o convite.
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-					<div className="flex flex-col gap-4">
-						<Label htmlFor="email">E-mail do convidado (opcional)</Label>
-						<Input id="email" type="email" {...form.register("email")} placeholder="email@exemplo.com" />
-						{form.formState.errors.email && (
-							<span className="text-xs text-red-500">{form.formState.errors.email.message}</span>
-						)}
-					</div>
 					<DialogFooter>
 						<Button type="submit">Criar convite</Button>
 					</DialogFooter>

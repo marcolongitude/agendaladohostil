@@ -6,6 +6,7 @@ import { LoadingProvider } from "@/contexts/LoadingContext";
 import { Loading } from "@/components/Loading";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { UserInitializer } from "@/components/UserInitializer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					<AuthProvider>
 						<LoadingProvider>
 							<Loading />
+							<UserInitializer />
 							<div className="relative flex min-h-screen flex-col">
 								<div className="flex-1">{children}</div>
 							</div>

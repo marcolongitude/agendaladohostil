@@ -13,7 +13,7 @@ export function DashboardMenu({
 }: {
 	bandaNome?: string;
 	bandaId?: string;
-	usuario: { nome: string; tipo: string } | null;
+	usuario: { nome: string; tipo: string; email: string } | null;
 }) {
 	const router = useRouter();
 	const pathname = usePathname();
@@ -44,8 +44,14 @@ export function DashboardMenu({
 					<div className="text-xl font-bold">{bandaNome || "Dashboard"}</div>
 				</div>
 				<div className="flex items-center gap-2">
-					<div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-bold">
-						{getInitials(usuario?.nome || "")}
+					<div className="flex items-center gap-2">
+						<div className="flex flex-col items-end">
+							<span className="text-sm text-muted-foreground">{usuario?.email}</span>
+							<span className="text-sm text-muted-foreground capitalize">{usuario?.tipo}</span>
+						</div>
+						<div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-muted">
+							<span className="text-sm font-medium leading-none">{getInitials(usuario?.nome || "")}</span>
+						</div>
 					</div>
 					<Button
 						variant="ghost"
