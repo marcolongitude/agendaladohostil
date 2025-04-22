@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useLoading } from "@/contexts/LoadingContext";
 import { Input } from "@/components/ui/input";
@@ -22,7 +21,6 @@ interface AceitarConviteButtonProps {
 }
 
 export function AceitarConviteButton({ token }: AceitarConviteButtonProps) {
-	const router = useRouter();
 	const { setLoading, setLoadingMessage } = useLoading();
 	const form = useForm<EmailFormData>({
 		resolver: zodResolver(emailSchema),
@@ -34,8 +32,7 @@ export function AceitarConviteButton({ token }: AceitarConviteButtonProps) {
 			setLoading(true);
 			setLoadingMessage("Verificando e-mail...");
 
-			const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-			const res = await fetch(`${baseUrl}/api/convites/aceitar`, {
+			const res = await fetch(`/api/convites/aceitar`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -55,10 +52,13 @@ export function AceitarConviteButton({ token }: AceitarConviteButtonProps) {
 			const supabase = createClientComponentClient();
 			await supabase.auth.signOut();
 
+			// Pequeno delay para garantir que o logout foi processado
+			await new Promise((resolve) => setTimeout(resolve, 500));
+
 			if (response.requiresSignup) {
-				router.push(`/cadastro?email=${encodeURIComponent(data.email)}&token=${token}`);
+				window.location.href = `/cadastro?email=${encodeURIComponent(data.email)}&token=${token}`;
 			} else {
-				router.push("/login");
+				window.location.href = "/login";
 			}
 		} catch (error) {
 			console.error("Erro ao aceitar convite:", error);

@@ -19,6 +19,9 @@ export default async function GerenciarConvitesPage({ params }: { params: Promis
 		redirect("/login");
 	}
 
+	// Busca o tipo do usuário
+	const { data: musico } = await supabase.from("musicos").select("tipo").eq("id", user.id).single();
+
 	// Verifica se o usuário tem permissão para acessar a banda
 	const { data: membroBanda } = await supabase
 		.from("membros_banda")
@@ -28,7 +31,29 @@ export default async function GerenciarConvitesPage({ params }: { params: Promis
 		.single();
 
 	if (!membroBanda) {
-		redirect("/bandas");
+		return (
+			<Container title="Acesso Negado">
+				<div className="flex flex-col items-center justify-center p-8">
+					<h2 className="text-xl font-semibold mb-2">Você não é membro desta banda</h2>
+					<p className="text-muted-foreground text-center">
+						Você precisa ser membro da banda para acessar esta página.
+					</p>
+				</div>
+			</Container>
+		);
+	}
+
+	if (musico?.tipo !== "manager") {
+		return (
+			<Container title="Acesso Negado">
+				<div className="flex flex-col items-center justify-center p-8">
+					<h2 className="text-xl font-semibold mb-2">Acesso Restrito</h2>
+					<p className="text-muted-foreground text-center">
+						Apenas managers podem gerenciar convites da banda.
+					</p>
+				</div>
+			</Container>
+		);
 	}
 
 	// Busca os convites da banda
@@ -37,13 +62,6 @@ export default async function GerenciarConvitesPage({ params }: { params: Promis
 		.select("*")
 		.eq("banda_id", bandaId)
 		.order("created_at", { ascending: false });
-
-	// Busca o tipo do usuário
-	const { data: musico } = await supabase.from("musicos").select("tipo").eq("id", user.id).single();
-
-	if (musico?.tipo !== "manager") {
-		redirect("/bandas");
-	}
 
 	return (
 		<Container title="Gerenciar Convites">

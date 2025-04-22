@@ -18,35 +18,68 @@ export const useUser = create<UserStore>((set) => ({
 }));
 
 export function useUserInitializer() {
-	const { user: currentUser, setUser } = useUser();
+	const { setUser } = useUser();
 
 	useEffect(() => {
-		if (currentUser) return;
-
 		const supabase = createClientComponentClient();
 		let isMounted = true;
 
 		async function initUser() {
 			try {
 				const {
-					data: { user },
+					data: { user: authUser },
 				} = await supabase.auth.getUser();
-				if (!user || !isMounted) return;
 
-				const { data } = await supabase.from("musicos").select("id, tipo").eq("id", user.id).single();
+				if (!authUser || !isMounted) return;
 
-				if (data && isMounted) {
-					setUser(data as User);
+				const { data: musico } = await supabase
+					.from("musicos")
+					.select("id, tipo")
+					.eq("id", authUser.id)
+					.single();
+
+				if (musico && isMounted) {
+					setUser({
+						id: musico.id,
+						tipo: musico.tipo as "manager" | "musico",
+					});
 				}
 			} catch (error) {
 				console.error("Error initializing user:", error);
 			}
 		}
 
+		// Inicializa o usuário
 		initUser();
+
+		// Escuta mudanças na autenticação
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange(async (event, session) => {
+			if (event === "SIGNED_OUT") {
+				setUser(null);
+				return;
+			}
+
+			if (session?.user) {
+				const { data: musico } = await supabase
+					.from("musicos")
+					.select("id, tipo")
+					.eq("id", session.user.id)
+					.single();
+
+				if (musico) {
+					setUser({
+						id: musico.id,
+						tipo: musico.tipo as "manager" | "musico",
+					});
+				}
+			}
+		});
 
 		return () => {
 			isMounted = false;
+			subscription.unsubscribe();
 		};
-	}, [currentUser, setUser]);
+	}, [setUser]);
 }

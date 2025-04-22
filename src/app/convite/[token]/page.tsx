@@ -7,8 +7,12 @@ interface Convite {
 }
 
 async function getConvite(token: string): Promise<Convite | null> {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-	const res = await fetch(`${baseUrl}/api/convites?token=${token}`, { cache: "no-store" });
+	const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/convites?token=${token}`, {
+		cache: "no-store",
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
 	if (!res.ok) return null;
 	return res.json();
 }

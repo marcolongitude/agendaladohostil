@@ -45,8 +45,7 @@ export async function POST(request: Request) {
 		}
 
 		// Monta o link do convite
-		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-		const link = `${baseUrl}/convite/${token}`;
+		const link = `/convite/${token}`;
 
 		return NextResponse.json({ link });
 	} catch {

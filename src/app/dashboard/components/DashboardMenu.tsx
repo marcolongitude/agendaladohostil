@@ -3,8 +3,8 @@ import { ArrowLeft, LogOut } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter, usePathname } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLogout } from "@/hooks/useLogout";
 
 export function DashboardMenu({
 	bandaNome,
@@ -17,6 +17,7 @@ export function DashboardMenu({
 }) {
 	const router = useRouter();
 	const pathname = usePathname();
+	const logout = useLogout();
 
 	// Extrai o bandaId da URL atual se estiver disponível
 	const currentBandaId = bandaId || pathname.split("/")[2];
@@ -53,34 +54,7 @@ export function DashboardMenu({
 							<span className="text-sm font-medium leading-none">{getInitials(usuario?.nome || "")}</span>
 						</div>
 					</div>
-					<Button
-						variant="ghost"
-						size="icon"
-						aria-label="Sair"
-						onClick={async () => {
-							try {
-								const supabase = createClientComponentClient();
-								const { error } = await supabase.auth.signOut();
-
-								if (error) {
-									console.error("Erro ao fazer logout:", error.message);
-									return;
-								}
-
-								// Limpa os cookies
-								document.cookie.split(";").forEach((c) => {
-									document.cookie = c
-										.replace(/^ +/, "")
-										.replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-								});
-
-								// Força um reload da página para garantir que todos os estados sejam limpos
-								window.location.href = "/login";
-							} catch (error) {
-								console.error("Erro ao fazer logout:", error);
-							}
-						}}
-					>
+					<Button variant="ghost" size="icon" aria-label="Sair" onClick={logout}>
 						<LogOut className="w-5 h-5" />
 					</Button>
 				</div>
@@ -89,15 +63,17 @@ export function DashboardMenu({
 				<div className="overflow-x-auto scrollbar-none">
 					<Tabs defaultValue={activeTab} className="w-full">
 						<TabsList className="h-12 bg-transparent w-max flex px-4 gap-8">
-							<Link href={`/dashboard/${currentBandaId}/gerenciar-convites`}>
-								<TabsTrigger
-									value="convites"
-									className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
-								>
-									Convites
-									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
-								</TabsTrigger>
-							</Link>
+							{usuario?.tipo === "manager" && (
+								<Link href={`/dashboard/${currentBandaId}/gerenciar-convites`}>
+									<TabsTrigger
+										value="convites"
+										className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
+									>
+										Convites
+										<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
+									</TabsTrigger>
+								</Link>
+							)}
 							<Link href={`/dashboard/${currentBandaId}/eventos`}>
 								<TabsTrigger
 									value="eventos"
@@ -116,7 +92,7 @@ export function DashboardMenu({
 									<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary opacity-0 transition-opacity data-[state=active]:opacity-100" />
 								</TabsTrigger>
 							</Link>
-							<Link href={`/dashboard/${currentBandaId}/eventos`}>
+							<Link href={`/dashboard/${currentBandaId}/musicos`}>
 								<TabsTrigger
 									value="musicos"
 									className="relative px-0 data-[state=active]:shadow-none rounded-none h-full bg-transparent"
