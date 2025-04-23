@@ -1,10 +1,11 @@
 "use client";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter, usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLogout } from "@/hooks/useLogout";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function DashboardMenu({
 	bandaNome,
@@ -45,18 +46,33 @@ export function DashboardMenu({
 					<div className="text-xl font-bold">{bandaNome || "Dashboard"}</div>
 				</div>
 				<div className="flex items-center gap-2">
-					<div className="flex items-center gap-2">
-						<div className="flex flex-col items-end">
-							<span className="text-sm text-muted-foreground">{usuario?.email}</span>
-							<span className="text-sm text-muted-foreground capitalize">{usuario?.tipo}</span>
-						</div>
-						<div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-muted">
-							<span className="text-sm font-medium leading-none">{getInitials(usuario?.nome || "")}</span>
-						</div>
-					</div>
-					<Button variant="ghost" size="icon" aria-label="Sair" onClick={logout}>
-						<LogOut className="w-5 h-5" />
-					</Button>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" className="relative h-8 w-8 rounded-full">
+								<div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
+									<span className="text-sm font-medium leading-none">
+										{getInitials(usuario?.nome || "")}
+									</span>
+								</div>
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className="w-56" align="end">
+							<div className="flex flex-col gap-1 p-2">
+								<span className="text-sm font-medium">{usuario?.nome}</span>
+								<span className="text-sm text-muted-foreground break-all">{usuario?.email}</span>
+								<span className="text-sm text-muted-foreground capitalize">{usuario?.tipo}</span>
+							</div>
+							<div className="flex items-center justify-center p-2">
+								<Button
+									variant="outline"
+									className="w-full justify-center text-sm font-normal"
+									onClick={logout}
+								>
+									Sair
+								</Button>
+							</div>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 			</div>
 			<div className="relative w-full border-b border-border">
