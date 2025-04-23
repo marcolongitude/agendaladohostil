@@ -1,12 +1,26 @@
+import { Suspense } from "react";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Container } from "@/components/Container";
 import { ClientEventos } from "./ClientEventos";
 import { Button } from "@/components/ui/button";
+import EventosLoading from "./loading";
 
-export default async function EventosPage({ params }: { params: Promise<{ bandaId: string }> }) {
-	const { bandaId } = await params;
+interface Compromisso {
+	id: string;
+	banda_id: string;
+	titulo: string;
+	descricao: string;
+	data: string;
+	local: string;
+	created_at: string;
+}
+
+async function getEventosData(bandaId: string): Promise<{
+	compromissos: Compromisso[];
+	isManager: boolean;
+}> {
 	const cookieStore = cookies();
 	const supabase = createServerComponentClient({ cookies: () => cookieStore });
 
@@ -42,20 +56,37 @@ export default async function EventosPage({ params }: { params: Promise<{ bandaI
 	// Busca o tipo do usuário
 	const { data: musico } = await supabase.from("musicos").select("tipo").eq("id", user.id).single();
 
-	console.log("Compromissos encontrados:", compromissos); // Para debug
+	return {
+		compromissos: (compromissos as Compromisso[]) || [],
+		isManager: musico?.tipo === "manager",
+	};
+}
+
+async function EventosContainer({ bandaId }: { bandaId: string }) {
+	const { compromissos, isManager } = await getEventosData(bandaId);
 
 	return (
 		<Container
 			title="Eventos"
 			action={
-				musico?.tipo === "manager" && (
+				isManager && (
 					<Button variant="outline" className="ml-auto">
 						Novo evento
 					</Button>
 				)
 			}
 		>
-			<ClientEventos compromissos={compromissos || []} />
+			<ClientEventos compromissos={compromissos} />
 		</Container>
+	);
+}
+
+export default async function EventosPage({ params }: { params: Promise<{ bandaId: string }> }) {
+	const { bandaId } = await params;
+
+	return (
+		<Suspense fallback={<EventosLoading />}>
+			<EventosContainer bandaId={bandaId} />
+		</Suspense>
 	);
 }

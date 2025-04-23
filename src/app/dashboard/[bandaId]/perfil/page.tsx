@@ -1,10 +1,22 @@
+import { Suspense } from "react";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ClientProfile } from "./ClientProfile";
 import { Container } from "@/components/Container";
+import PerfilLoading from "./loading";
 
-export default async function PerfilPage() {
+interface Musico {
+	id: string;
+	nome: string;
+	email: string;
+	tipo: string;
+	created_at: string;
+}
+
+async function getPerfilData(): Promise<{
+	musico: Musico;
+}> {
 	const cookieStore = cookies();
 	const supabase = createServerComponentClient({ cookies: () => cookieStore });
 
@@ -24,9 +36,20 @@ export default async function PerfilPage() {
 		redirect("/login");
 	}
 
+	return { musico };
+}
+
+async function PerfilContainer() {
+	const { musico } = await getPerfilData();
+	return <ClientProfile musico={musico} />;
+}
+
+export default function PerfilPage() {
 	return (
 		<Container title="Perfil">
-			<ClientProfile musico={musico} />
+			<Suspense fallback={<PerfilLoading />}>
+				<PerfilContainer />
+			</Suspense>
 		</Container>
 	);
 }
