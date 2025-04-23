@@ -3,6 +3,7 @@
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tag } from "../../components/Tag";
+import { formatPhoneNumber } from "./utils";
 
 interface Musico {
 	id: string;
@@ -54,7 +55,7 @@ export function ClientMusicos({ membros }: ClientMusicosProps) {
 							<h3 className="font-semibold text-lg">{musico.nome}</h3>
 							<div className="space-y-1 text-sm text-muted-foreground">
 								<p>{musico.email}</p>
-								<p>{musico.telefone}</p>
+								<p>{formatPhoneNumber(musico.telefone)}</p>
 							</div>
 						</div>
 						<div className="flex justify-end items-end gap-2">
