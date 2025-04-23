@@ -11,9 +11,11 @@ interface Compromisso {
 	id: string;
 	banda_id: string;
 	titulo: string;
-	descricao: string;
+	descricao: string | null;
 	data: string;
+	hora: string;
 	local: string;
+	status: "agendado" | "cancelado" | "concluido";
 	created_at: string;
 }
 

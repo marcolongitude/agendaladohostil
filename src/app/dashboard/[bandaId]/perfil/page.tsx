@@ -10,6 +10,8 @@ interface Musico {
 	id: string;
 	nome: string;
 	email: string;
+	telefone: string;
+	instrumento: string;
 	tipo: string;
 	created_at: string;
 }
