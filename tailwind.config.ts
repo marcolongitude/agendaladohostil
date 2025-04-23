@@ -72,13 +72,17 @@ const config = {
 					to: { height: "0" },
 				},
 				"gradient-x": {
-					"0%, 100%": {
-						"background-size": "200% 200%",
-						"background-position": "left center",
+					"0%": {
+						"background-size": "400% 400%",
+						"background-position": "0% 50%",
 					},
 					"50%": {
-						"background-size": "200% 200%",
-						"background-position": "right center",
+						"background-size": "400% 400%",
+						"background-position": "100% 50%",
+					},
+					"100%": {
+						"background-size": "400% 400%",
+						"background-position": "0% 50%",
 					},
 				},
 				"slide-in-from-left": {
@@ -117,7 +121,7 @@ const config = {
 			animation: {
 				"accordion-down": "accordion-down 0.2s ease-out",
 				"accordion-up": "accordion-up 0.2s ease-out",
-				"gradient-x": "gradient-x 4s ease infinite",
+				"gradient-x": "gradient-x 2s linear infinite",
 				"slide-in-from-left": "slide-in-from-left 0.3s ease-out",
 				"slide-out-to-left": "slide-out-to-left 0.3s ease-out",
 				"slide-in-from-right": "slide-in-from-right 0.3s ease-out",
