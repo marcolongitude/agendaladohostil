@@ -76,9 +76,9 @@ export function DashboardMenu({
 				</div>
 			</div>
 			<div className="relative w-full border-b border-border">
-				<div className="overflow-x-auto scrollbar-none">
+				<div className="overflow-x-auto scrollbar-hide">
 					<Tabs defaultValue={activeTab} className="w-full">
-						<TabsList className="h-12 bg-transparent w-max flex px-4 gap-8">
+						<TabsList className="h-12 bg-transparent w-max flex px-2 sm:px-4 gap-4 sm:gap-8">
 							{usuario?.tipo === "manager" && (
 								<Link href={`/dashboard/${currentBandaId}/gerenciar-convites`}>
 									<TabsTrigger
