@@ -1,7 +1,7 @@
-import { cookies } from "next/headers";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { redirect } from "next/navigation";
 import { DashboardMenu } from "./components/DashboardMenu";
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 type Usuario = {
 	nome: string;
@@ -15,15 +15,29 @@ type Banda = {
 };
 
 async function getBanda(bandaId: string): Promise<Banda | null> {
-	const cookieStore = cookies();
-	const supabase = createServerComponentClient({ cookies: () => cookieStore });
-	const { data: banda } = await supabase.from("bandas").select("nome, id").eq("id", bandaId).single();
-	return banda;
+	const supabase = createServerActionClient({
+		cookies,
+	});
+
+	try {
+		const { data: banda, error } = await supabase.from("bandas").select("nome, id").eq("id", bandaId).single();
+
+		if (error) {
+			console.error("Erro ao buscar banda:", error);
+			return null;
+		}
+
+		return banda;
+	} catch (error) {
+		console.error("Erro ao buscar banda:", error);
+		return null;
+	}
 }
 
 async function getUsuario(): Promise<Usuario | null> {
-	const cookieStore = cookies();
-	const supabase = createServerComponentClient({ cookies: () => cookieStore });
+	const supabase = createServerActionClient({
+		cookies,
+	});
 
 	try {
 		const {
@@ -71,9 +85,9 @@ export default async function DashboardLayout({
 	params,
 }: {
 	children: React.ReactNode;
-	params: Promise<{ bandaId?: string }>;
+	params: { bandaId?: string };
 }) {
-	const { bandaId } = await params;
+	const bandaId = params.bandaId;
 	const usuario = await getUsuario();
 
 	if (!usuario) {

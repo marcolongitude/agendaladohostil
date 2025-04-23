@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { redirect } from "next/navigation";
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 type Banda = {
 	nome?: string;
@@ -8,17 +8,23 @@ type Banda = {
 };
 
 async function getBanda(bandaId: string): Promise<Banda | null> {
-	const cookieStore = cookies();
-	const supabase = createServerComponentClient({ cookies: () => cookieStore });
+	const supabase = createServerActionClient({
+		cookies,
+	});
 
-	const { data: banda, error } = await supabase.from("bandas").select("*").eq("id", bandaId).single();
+	try {
+		const { data: banda, error } = await supabase.from("bandas").select("nome, id").eq("id", bandaId).single();
 
-	if (error) {
+		if (error) {
+			console.error("Erro ao buscar banda:", error);
+			return null;
+		}
+
+		return banda;
+	} catch (error) {
 		console.error("Erro ao buscar banda:", error);
 		return null;
 	}
-
-	return banda;
 }
 
 export default async function BandaLayout({

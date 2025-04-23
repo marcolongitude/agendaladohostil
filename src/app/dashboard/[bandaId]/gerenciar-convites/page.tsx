@@ -1,13 +1,17 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Container } from "@/components/Container";
 import { ClientConvites } from "./ClientConvites";
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 export default async function GerenciarConvitesPage({ params }: { params: Promise<{ bandaId: string }> }) {
+	// Aguarda os parâmetros
 	const { bandaId } = await params;
-	const cookieStore = cookies();
-	const supabase = createServerComponentClient({ cookies: () => cookieStore });
+
+	// Cria o cliente Supabase
+	const supabase = createServerActionClient({
+		cookies,
+	});
 
 	// Verifica o usuário
 	const {

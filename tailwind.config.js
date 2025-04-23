@@ -13,43 +13,19 @@ export default {
 		},
 		extend: {
 			colors: {
-				primary: {
-					DEFAULT: "#90CAF9",
-					foreground: "#0D1117",
-				},
-				secondary: {
-					DEFAULT: "#F48FB1",
-					foreground: "#0D1117",
-				},
-				background: {
-					DEFAULT: "#0D1117",
-					paper: "#161B22",
-				},
-				text: {
-					primary: "#EDEDED",
-					secondary: "#9CA3AF",
-				},
-				error: {
-					DEFAULT: "#EF5350",
-					foreground: "#0D1117",
-				},
-				warning: {
-					DEFAULT: "#FFB74D",
-					foreground: "#0D1117",
-				},
-				info: {
-					DEFAULT: "#64B5F6",
-					foreground: "#0D1117",
-				},
-				success: {
-					DEFAULT: "#81C784",
-					foreground: "#0D1117",
-				},
-				divider: "#2C313C",
 				border: "hsl(var(--border))",
 				input: "hsl(var(--input))",
 				ring: "hsl(var(--ring))",
+				background: "hsl(var(--background))",
 				foreground: "hsl(var(--foreground))",
+				primary: {
+					DEFAULT: "hsl(var(--primary))",
+					foreground: "hsl(var(--primary-foreground))",
+				},
+				secondary: {
+					DEFAULT: "hsl(var(--secondary))",
+					foreground: "hsl(var(--secondary-foreground))",
+				},
 				destructive: {
 					DEFAULT: "hsl(var(--destructive))",
 					foreground: "hsl(var(--destructive-foreground))",

@@ -22,7 +22,7 @@ export function useLogout() {
 	const clearStorages = () => {
 		try {
 			// Limpa todos os storages
-			localStorage.clear();
+			// localStorage.clear();
 			sessionStorage.clear();
 
 			// Remove dados específicos do Supabase se existirem
