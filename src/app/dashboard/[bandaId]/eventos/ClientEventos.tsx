@@ -1,39 +1,42 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { format, isFuture, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { Calendar, MapPin, ChevronRight } from "lucide-react";
 import { FilterButtons } from "../../components/filterButtons";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface Compromisso {
+interface Show {
 	id: string;
-	titulo: string;
-	descricao: string | null;
+	nome_evento: string;
+	cidade: string;
+	casa_de_show: string;
 	data: string;
 	hora: string;
-	local: string;
-	status: "agendado" | "cancelado" | "concluido";
+	created_at: string;
+	banda_id: string;
 }
 
 interface ClientEventosProps {
-	compromissos: Compromisso[];
+	shows: Show[];
 }
 
 const statusLabels = {
-	agendado: "Agendados",
-	concluido: "Concluídos",
-	cancelado: "Cancelados",
+	futuros: "Eventos Futuros",
+	passados: "Eventos Passados",
 };
 
-export function ClientEventos({ compromissos }: ClientEventosProps) {
-	const [activeFilter, setActiveFilter] = useState("todos");
+export function ClientEventos({ shows }: ClientEventosProps) {
+	const [activeFilter, setActiveFilter] = useState("futuros");
 
 	// Calcula os filtros com contagem
 	const filters = useMemo(() => {
-		const counts = compromissos.reduce((acc, evento) => {
-			acc[evento.status] = (acc[evento.status] || 0) + 1;
+		const counts = shows.reduce((acc, show) => {
+			const status = isFuture(new Date(show.data)) ? "futuros" : "passados";
+			acc[status] = (acc[status] || 0) + 1;
 			return acc;
 		}, {} as Record<string, number>);
 
@@ -42,93 +45,82 @@ export function ClientEventos({ compromissos }: ClientEventosProps) {
 			label,
 			count: counts[value] || 0,
 		}));
-	}, [compromissos]);
+	}, [shows]);
 
 	// Filtra e ordena os eventos
-	const eventosFiltered = useMemo(() => {
-		return compromissos
-			.filter((evento) => activeFilter === "todos" || evento.status === activeFilter)
+	const showsFiltered = useMemo(() => {
+		return shows
+			.filter((show) => {
+				const isShowFuture = isFuture(new Date(show.data));
+				return activeFilter === "futuros" ? isShowFuture : !isShowFuture;
+			})
 			.sort((a, b) => {
-				// Primeiro, comparar as datas
 				const dateA = new Date(a.data + "T" + a.hora);
 				const dateB = new Date(b.data + "T" + b.hora);
-				return dateA.getTime() - dateB.getTime();
+				// Para eventos futuros, ordena do mais próximo para o mais distante
+				// Para eventos passados, ordena do mais recente para o mais antigo
+				return activeFilter === "futuros"
+					? dateA.getTime() - dateB.getTime()
+					: dateB.getTime() - dateA.getTime();
 			});
-	}, [compromissos, activeFilter]);
+	}, [shows, activeFilter]);
 
-	function getStatusColor(status: string) {
-		switch (status) {
-			case "agendado":
-				return "text-yellow-500";
-			case "concluido":
-				return "text-green-500";
-			case "cancelado":
-				return "text-red-500";
-			default:
-				return "text-gray-500";
+	function getEventStatus(data: string) {
+		const eventDate = new Date(data);
+		if (isPast(eventDate)) {
+			return {
+				label: "Finalizado",
+				class: "bg-gray-500/10 text-gray-500",
+			};
 		}
-	}
-
-	function getEmptyMessage(filter: string) {
-		if (filter === "todos") {
-			return "Nenhum evento encontrado.";
-		}
-		return `Nenhum evento ${statusLabels[filter as keyof typeof statusLabels].toLowerCase()} encontrado.`;
+		return {
+			label: "Ativo",
+			class: "bg-green-500/10 text-green-500",
+		};
 	}
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4">
 			<FilterButtons filters={filters} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-			{eventosFiltered.length === 0 ? (
-				<Alert variant="default" className="bg-card border-warning/50">
-					<AlertCircle className="h-4 w-4 text-warning" />
-					<AlertDescription className="text-warning">{getEmptyMessage(activeFilter)}</AlertDescription>
-				</Alert>
-			) : (
-				<ul className="space-y-4">
-					{eventosFiltered.map((compromisso) => (
-						<li
-							key={compromisso.id}
-							className="p-4 rounded-lg border border-border bg-card hover:bg-card/80 transition-colors"
-						>
-							<div className="space-y-2">
-								<div className="flex items-start justify-between gap-4">
-									<h3 className="font-semibold text-lg">{compromisso.titulo}</h3>
-									<span className={`text-sm font-medium ${getStatusColor(compromisso.status)}`}>
-										{compromisso.status}
-									</span>
-								</div>
-
-								{compromisso.descricao && (
-									<p className="text-sm text-muted-foreground">{compromisso.descricao}</p>
-								)}
-
-								<div className="flex flex-col gap-1 text-sm">
-									<div className="flex items-center gap-2">
-										<span className="text-muted-foreground">Data:</span>
-										<span>
-											{format(new Date(compromisso.data), "dd 'de' MMMM 'de' yyyy", {
-												locale: ptBR,
-											})}
-										</span>
+			<div className="grid gap-3">
+				{showsFiltered.map((show) => {
+					const status = getEventStatus(show.data);
+					return (
+						<Link key={show.id} href={`/dashboard/${show.banda_id}/eventos/${show.id}`}>
+							<Card className="hover:bg-accent/50 transition-colors">
+								<CardContent className="p-4">
+									<div className="flex items-start justify-between gap-2">
+										<div className="space-y-1.5">
+											<div className="flex items-center gap-2">
+												<h3 className="font-medium">{show.nome_evento}</h3>
+												<Badge variant="secondary" className={status.class}>
+													{status.label}
+												</Badge>
+											</div>
+											<div className="flex flex-col gap-1 text-sm text-muted-foreground">
+												<div className="flex items-center gap-1.5">
+													<Calendar className="h-3.5 w-3.5" />
+													<span>
+														{format(new Date(show.data), "dd 'de' MMM 'de' yyyy", {
+															locale: ptBR,
+														})}
+													</span>
+												</div>
+												<div className="flex items-center gap-1.5">
+													<MapPin className="h-3.5 w-3.5" />
+													<span>{show.cidade}</span>
+												</div>
+											</div>
+										</div>
+										<ChevronRight className="h-5 w-5 text-muted-foreground" />
 									</div>
-
-									<div className="flex items-center gap-2">
-										<span className="text-muted-foreground">Hora:</span>
-										<span>{compromisso.hora}</span>
-									</div>
-
-									<div className="flex items-center gap-2">
-										<span className="text-muted-foreground">Local:</span>
-										<span>{compromisso.local}</span>
-									</div>
-								</div>
-							</div>
-						</li>
-					))}
-				</ul>
-			)}
+								</CardContent>
+							</Card>
+						</Link>
+					);
+				})}
+			</div>
 		</div>
 	);
 }

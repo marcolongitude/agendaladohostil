@@ -6,21 +6,21 @@ import { Container } from "@/components/Container";
 import { ClientEventos } from "./ClientEventos";
 import { Button } from "@/components/ui/button";
 import EventosLoading from "./loading";
+import Link from "next/link";
 
-interface Compromisso {
+interface Show {
 	id: string;
-	banda_id: string;
-	titulo: string;
-	descricao: string | null;
+	nome_evento: string;
+	cidade: string;
+	casa_de_show: string;
 	data: string;
 	hora: string;
-	local: string;
-	status: "agendado" | "cancelado" | "concluido";
 	created_at: string;
+	banda_id: string;
 }
 
 async function getEventosData(bandaId: string): Promise<{
-	compromissos: Compromisso[];
+	shows: Show[];
 	isManager: boolean;
 }> {
 	const cookieStore = cookies();
@@ -48,9 +48,9 @@ async function getEventosData(bandaId: string): Promise<{
 		redirect("/bandas");
 	}
 
-	// Busca os eventos da banda
-	const { data: compromissos } = await supabase
-		.from("compromissos_banda")
+	// Busca os shows da banda
+	const { data: shows } = await supabase
+		.from("shows")
 		.select("*")
 		.eq("banda_id", bandaId)
 		.order("data", { ascending: true });
@@ -59,26 +59,26 @@ async function getEventosData(bandaId: string): Promise<{
 	const { data: musico } = await supabase.from("musicos").select("tipo").eq("id", user.id).single();
 
 	return {
-		compromissos: (compromissos as Compromisso[]) || [],
+		shows: (shows as Show[]) || [],
 		isManager: musico?.tipo === "manager",
 	};
 }
 
 async function EventosContainer({ bandaId }: { bandaId: string }) {
-	const { compromissos, isManager } = await getEventosData(bandaId);
+	const { shows, isManager } = await getEventosData(bandaId);
 
 	return (
 		<Container
 			title="Eventos"
 			action={
 				isManager && (
-					<Button variant="outline" className="ml-auto">
-						Novo evento
+					<Button asChild variant="outline" className="ml-auto">
+						<Link href={`/dashboard/${bandaId}/eventos/novo`}>Novo evento</Link>
 					</Button>
 				)
 			}
 		>
-			<ClientEventos compromissos={compromissos} />
+			<ClientEventos shows={shows} />
 		</Container>
 	);
 }
