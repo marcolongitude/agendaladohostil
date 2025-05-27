@@ -16,13 +16,13 @@ interface FilterButtonsProps {
 export function FilterButtons({ filters, activeFilter, onFilterChange }: FilterButtonsProps) {
 	return (
 		<div className="relative w-full mb-6">
-			<div className="overflow-x-auto scrollbar-none">
-				<div className="flex gap-2 pb-2">
+			<div className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+				<div className="flex flex-nowrap gap-2 pb-2">
 					<Button
 						variant="outline"
 						size={"sm"}
 						className={cn(
-							"whitespace-nowrap",
+							"whitespace-nowrap shrink-0",
 							activeFilter === "todos" && "bg-primary text-primary-foreground"
 						)}
 						onClick={() => onFilterChange("todos")}
@@ -35,7 +35,7 @@ export function FilterButtons({ filters, activeFilter, onFilterChange }: FilterB
 							variant="outline"
 							size={"sm"}
 							className={cn(
-								"whitespace-nowrap",
+								"whitespace-nowrap shrink-0",
 								activeFilter === filter.value && "bg-primary text-primary-foreground"
 							)}
 							onClick={() => onFilterChange(filter.value)}
